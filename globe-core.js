@@ -284,7 +284,8 @@
     g.setAttribute("stroke-linecap", "round");
     svgEl.appendChild(g);
     const pool = [];
-    let inkAtual = "";
+    let inkAtual = "",
+      swAtual = -1;
 
     return function paint(p) {
       const cs = glyphPaths(p);
@@ -292,11 +293,11 @@
         g.setAttribute("stroke", p.ink);
         inkAtual = p.ink;
       }
-      /* Duas espessuras: o aro carrega o peso da marca e os meridianos e
-         paralelos podem ir mais finos que ele. A razão é relativa de propósito —
-         mexer no traço engrossa o desenho inteiro sem desfazer o contraste
-         escolhido entre a borda e as linhas. */
-      const swLinha = p.stroke * (p.linhas == null ? 1 : p.linhas);
+      // uma espessura para o desenho inteiro: aro e linhas com o mesmo peso
+      if (p.stroke !== swAtual) {
+        g.setAttribute("stroke-width", p.stroke);
+        swAtual = p.stroke;
+      }
       for (let i = 0; i < cs.length; i++) {
         let el = pool[i];
         if (!el) {
@@ -305,11 +306,6 @@
           pool.push(el);
         }
         el.setAttribute("d", cs[i].d);
-        const sw = cs[i].papel === "linha" ? swLinha : p.stroke;
-        if (el.__sw !== sw) {
-          el.setAttribute("stroke-width", sw);
-          el.__sw = sw;
-        }
         // o corte reto vale só no arco da silhueta, e só quando pedido
         const cap = cs[i].papel === "aro" && p.pontaReta ? "butt" : "round";
         if (el.__cap !== cap) {

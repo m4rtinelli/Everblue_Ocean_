@@ -172,16 +172,10 @@
       respiro: 0,
     },
     globo: {
-      infl: 1,
-      inercia: 0.14,
       // a marca abre sozinha; o logotipo é opcional e entra pelo painel
       lettering: false,
-      tam: 26, // em vmin, limitado pela largura em aplicarTamanho()
-      stroke: 20,
-      linhas: 1, // espessura dos meridianos e paralelos, relativa ao traço
-      aperture: 0.15,
-      meridians: 1,
-      parallels: 1,
+      tam: 46, // em vmin, limitado pela largura em aplicarTamanho()
+      stroke: 40,
       tinta: "auto", // "auto" = a tinta que a paleta pede
     },
     // em tela estreita o painel é gaveta e nasce recolhido: aberto de saída, ele
@@ -192,7 +186,7 @@
   /* A chave carrega a versão dos padrões: mudou o padrão de fábrica, a chave
      muda junto e o que estava salvo é ignorado em vez de esconder o padrão novo
      atrás de um valor antigo. */
-  const CHAVE = "everblue-landing-2";
+  const CHAVE = "everblue-landing-3";
   const clone = (o) => JSON.parse(JSON.stringify(o));
 
   /* Mescla o que estava salvo por cima do padrão, campo a campo: um arquivo
@@ -276,6 +270,10 @@
   // preset da marca (everblue-presets-globe.json), não zero — o logo tem uma
   // inclinação própria e o cursor é desvio em cima dela.
   const REPOUSO = { rotY: 14, rotX: -6 };
+  /* Quanto o cursor desvia a marca, e com quanta inércia. Não são preferência:
+     é o gesto da identidade, e ele tem de ser o mesmo em toda peça — por isso
+     ficam aqui e não no painel, junto com a abertura e a grade de linhas. */
+  const INERCIA = 0.14;
   const G = {
     meridians: 1,
     parallels: 1,
@@ -284,8 +282,7 @@
     rotX: REPOUSO.rotX,
     gapCenter: 40,
     anchorTop: true,
-    stroke: 20,
-    linhas: 1,
+    stroke: 40,
     /* Feitio da marca, e não preferência: a abertura termina reta embaixo e as
        linhas somem atrás do globo. Ficam fixos aqui de propósito — no painel
        seriam dois jeitos de desenhar o logo errado. */
@@ -475,12 +472,12 @@
     /* Fora da janela, o globo volta ao repouso pela mesma suavização com que
        seguiu o cursor — some o alvo, não o movimento. */
     const [tY, tX] = pt.dentro
-      ? poseCircular(pt.gx, pt.gy, FOLLOW.amp * gl.infl)
+      ? poseCircular(pt.gx, pt.gy, FOLLOW.amp)
       : [0, 0];
     anim.tY = tY;
     anim.tX = tX;
 
-    const k = suave(gl.inercia, dt);
+    const k = suave(INERCIA, dt);
     anim.cY += (anim.tY - anim.cY) * k;
     anim.cX += (anim.tX - anim.cX) * k;
 
@@ -490,18 +487,13 @@
     /* Só redesenha quando a pose mudou o bastante para aparecer: a tesselagem é
        a parte cara e, parado, ela sairia igual 60× por segundo. Meio décimo de
        grau é menos de um décimo de pixel na borda com o globo em tela cheia. */
-    const sel = gl.stroke + "|" + gl.linhas + "|" + gl.aperture + "|" +
-      gl.meridians + "|" + gl.parallels + "|" + G.ink;
+    const sel = gl.stroke + "|" + G.ink;
     if (
       Math.abs(G.rotY - pintadoY) > 0.05 ||
       Math.abs(G.rotX - pintadoX) > 0.05 ||
       sel !== pintadoSel
     ) {
       G.stroke = gl.stroke;
-      G.linhas = gl.linhas;
-      G.aperture = gl.aperture;
-      G.meridians = gl.meridians;
-      G.parallels = gl.parallels;
       pintar(G);
       pintadoY = G.rotY;
       pintadoX = G.rotX;
@@ -1097,24 +1089,8 @@
       "Um pouco de grão não é enfeite: sem ele um gradiente desta suavidade sai em faixas na maioria das telas.",
     );
 
-    // ---- globo
+    // ---- globo: só o desenho da marca; o gesto dela é fixo
     const s4 = secao("Globo");
-    faixa(s4, {
-      nome: "Influência",
-      caminho: "globo.infl",
-      min: 0,
-      max: 2,
-      step: 0.01,
-      fmt: pct,
-      dica: "Amplitude do desvio que o cursor impõe sobre a pose de repouso da marca.",
-    });
-    faixa(s4, {
-      nome: "Inércia",
-      caminho: "globo.inercia",
-      min: 0.02,
-      max: 0.6,
-      step: 0.01,
-    });
     faixa(s4, {
       nome: "Tamanho",
       caminho: "globo.tam",
@@ -1131,37 +1107,20 @@
       max: 40,
       step: 0.5,
       fmt: (v) => String(v),
-      dica: "Peso do desenho inteiro, medido no aro.",
+      dica: "Peso do desenho inteiro — aro e linhas com a mesma espessura.",
     });
-    faixa(s4, {
-      nome: "Linhas",
-      caminho: "globo.linhas",
-      min: 0.15,
-      max: 2,
-      step: 0.05,
-      fmt: pct,
-      dica: "Espessura dos meridianos e paralelos, em relação ao aro. Relativa de propósito: mexer no traço engrossa tudo sem desfazer o contraste escolhido aqui.",
-    });
-    faixa(s4, {
-      nome: "Abertura",
-      caminho: "globo.aperture",
-      min: 0,
-      max: 1,
-      step: 0.01,
-      dica: "0 fecha o globo; alta abre o terminal e a marca lê como “e”.",
-    });
-    interruptor(s4, {
+    hint(
+      s4,
+      "Abertura, grade de linhas e o jeito de seguir o cursor não estão aqui: são o gesto da identidade, e têm de sair iguais em toda peça.",
+    );
+
+    const s6 = secao("Marca");
+    interruptor(s6, {
       nome: "Mostrar logotipo",
       caminho: "globo.lettering",
       dica: "O símbolo sozinho é o padrão; ligado, entra o logotipo ao lado.",
       aoMudar: aplicarLettering,
     });
-    hint(
-      s4,
-      "A <b>influência</b> vira o globo na direção do cursor com o mesmo deslocamento em qualquer sentido — o gesto desenha um círculo, não uma elipse.",
-    );
-
-    const s6 = secao("Tinta da marca");
     chips(s6, {
       caminho: "globo.tinta",
       opcoes: [["auto", "Da paleta"]].concat(TINTAS.map(([h, n]) => [h, n])),

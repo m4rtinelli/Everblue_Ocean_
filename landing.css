@@ -136,15 +136,29 @@ body.escuro .topo nav a,
 body.escuro .rodape {
   filter: drop-shadow(0 1px 10px rgba(0, 0, 0, 0.45));
 }
+/* O selo repete a proporção da marca: a altura do logotipo é 0,64 do diâmetro
+   do símbolo, e o vão entre os dois é 0,22 dele — os mesmos números do lockup
+   grande, para o canto não ler como um segundo desenho. */
 .selo {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   color: var(--tinta);
   opacity: 0.9;
+  transition: opacity 0.25s;
+}
+.selo:hover {
+  opacity: 1;
 }
 .selo svg {
   display: block;
-  height: 15px;
   width: auto;
+}
+.selo-simbolo {
+  height: 28px;
+}
+.selo-letra {
+  height: 18px;
 }
 .topo nav {
   display: flex;

@@ -38,9 +38,13 @@ a marca pareceria descolar do fundo.
 ## A página
 
 Só o símbolo, centralizado — é a visualização padrão. O logotipo entra pelo
-painel (*Globo · Mostrar logotipo*) e é o vetor da marca, não texto: mora uma vez
-só como `<symbol>` e serve tanto ao selo do topo quanto ao lockup do meio,
-herdando a tinta do globo por `currentColor`.
+painel (*Marca · Mostrar logotipo*) e é o vetor da marca, não texto.
+
+Os dois vetores moram em `index.html` uma vez só, como `<symbol>`, e herdam a
+tinta do globo por `currentColor`: `#letra` é o logotipo e `#simbolo` é a versão
+cheia do globo. O selo do topo usa os dois — em tamanho de canto, o desenho de
+linha do meio fecharia e viraria borrão, então ali entra a versão cheia. O globo
+do meio continua sendo geometria viva, desenhada quadro a quadro.
 
 O rodapé é leitura ao vivo da esfera, tirada da pose em vigor e não de um relógio
 à parte — para quando o globo para:
@@ -78,11 +82,11 @@ onde está).
   composição inteira e respiro. Zerar velocidade e amplitude deixa o fundo parado
   como arte fixa.
 - **Gradiente** — escala, deformação, contraste, grão, vinheta e resolução.
-- **Globo** — influência do cursor, inércia, tamanho, traço (peso do aro),
-  linhas (espessura dos meridianos e paralelos, relativa ao aro), abertura e o
-  interruptor do logotipo.
-- **Tinta da marca** — "Da paleta" deixa a luminância decidir; qualquer outra
-  fixa a cor.
+- **Globo** — tamanho e traço, e mais nada: abertura, grade de linhas e o jeito
+  de seguir o cursor não estão aqui. O traço é um só para o desenho inteiro —
+  aro e linhas com a mesma espessura.
+- **Marca** — o interruptor do logotipo e a tinta. "Da paleta" deixa a
+  luminância decidir; qualquer outra fixa a cor.
 - **Presets** — guardam o desenho inteiro (cores, movimento, gradiente e globo) e
   deixam de fora a janela do painel. Ficam neste navegador; **Exportar** grava um
   `.json` e **Importar** traz de volta. Salvar com um nome que já existe
@@ -102,12 +106,10 @@ onde está).
   com a marca: `vector-effect: non-scaling-stroke` prende o traço no pixel da
   tela. O anel é maior que a espessura do desenho de propósito — menor que isso
   ele fica enterrado sob o próprio traço quando o ponto cai em cima de uma linha.
-- **A espessura das linhas é relativa ao traço**, e não um segundo valor
-  absoluto: mexer no traço engrossa o desenho inteiro sem desfazer o contraste
-  escolhido entre a borda e as linhas.
-- **Ponta reta e linhas cortadas no horizonte são feitio da marca, não
-  preferência.** Ficam fixos em `landing.js` de propósito: no painel seriam dois
-  jeitos de desenhar o logo errado.
+- **O que é gesto da identidade não vira slider.** Ponta reta, linhas cortadas
+  no horizonte, abertura, grade de meridianos e paralelos, amplitude e inércia do
+  seguir-o-cursor: tudo fixo em `landing.js`, porque tem de sair igual em toda
+  peça. No painel seriam jeitos de desenhar o logo errado.
 - **A cor do texto e a tinta da marca não são escolhidas, são deduzidas.** Saem
   da luminância das cores em vigor, com peso maior para a âncora do centro —
   onde a marca pousa. É o que faz uma paleta montada à mão continuar legível.
@@ -128,7 +130,7 @@ onde está).
 - **A cor do texto troca de uma vez com a paleta**, sem transição: o fundo muda
   no quadro seguinte, e um texto atravessando meio segundo de cor intermediária
   chegaria atrasado — num quadro só (uma captura, um vídeo), chegaria errado.
-- **A chave do `localStorage` carrega a versão dos padrões** (`everblue-landing-2`).
+- **A chave do `localStorage` carrega a versão dos padrões** (`everblue-landing-3`).
   Mudou o padrão de fábrica, a chave muda junto: senão o valor salvo de ontem
   esconderia o padrão novo e ninguém veria a mudança.
 - **Sem WebGL a página continua de pé**: o `body` já carrega um gradiente CSS com
