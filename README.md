@@ -82,9 +82,10 @@ onde está).
   composição inteira e respiro. Zerar velocidade e amplitude deixa o fundo parado
   como arte fixa.
 - **Gradiente** — escala, deformação, contraste, grão, vinheta e resolução.
-- **Globo** — tamanho e traço, e mais nada: abertura, grade de linhas e o jeito
-  de seguir o cursor não estão aqui. O traço é um só para o desenho inteiro —
-  aro e linhas com a mesma espessura.
+- **Globo** — tamanho, traço e amplitude. O traço é um só para o desenho inteiro
+  (aro e linhas com a mesma espessura) e a amplitude é o quanto ele vira quando o
+  cursor chega à borda, em graus — vale igual em qualquer direção. Abertura e
+  grade de linhas não estão aqui: são feitio da marca.
 - **Marca** — o interruptor do logotipo e a tinta. "Da paleta" deixa a
   luminância decidir; qualquer outra fixa a cor.
 - **Presets** — guardam o desenho inteiro (cores, movimento, gradiente e globo) e
@@ -106,10 +107,16 @@ onde está).
   com a marca: `vector-effect: non-scaling-stroke` prende o traço no pixel da
   tela. O anel é maior que a espessura do desenho de propósito — menor que isso
   ele fica enterrado sob o próprio traço quando o ponto cai em cima de uma linha.
+- **A pose de repouso é frontal, e isso é o que centra o movimento.** Uma pose de
+  partida girada — a marca tem 14° de rotação no preset — faria o desvio pender
+  para um lado: o cruzamento dos eixos iria de −12% a +57% do raio em vez de ir
+  de −36% a +36%. Com zero no repouso, esquerda e direita (e cima e baixo) são o
+  mesmo movimento.
 - **O que é gesto da identidade não vira slider.** Ponta reta, linhas cortadas
-  no horizonte, abertura, grade de meridianos e paralelos, amplitude e inércia do
+  no horizonte, abertura, grade de meridianos e paralelos e a inércia do
   seguir-o-cursor: tudo fixo em `landing.js`, porque tem de sair igual em toda
-  peça. No painel seriam jeitos de desenhar o logo errado.
+  peça. A amplitude é a exceção — ela é a força do gesto, não o feitio dele, e
+  está no painel. No painel seriam jeitos de desenhar o logo errado.
 - **A cor do texto e a tinta da marca não são escolhidas, são deduzidas.** Saem
   da luminância das cores em vigor, com peso maior para a âncora do centro —
   onde a marca pousa. É o que faz uma paleta montada à mão continuar legível.
@@ -130,7 +137,7 @@ onde está).
 - **A cor do texto troca de uma vez com a paleta**, sem transição: o fundo muda
   no quadro seguinte, e um texto atravessando meio segundo de cor intermediária
   chegaria atrasado — num quadro só (uma captura, um vídeo), chegaria errado.
-- **A chave do `localStorage` carrega a versão dos padrões** (`everblue-landing-3`).
+- **A chave do `localStorage` carrega a versão dos padrões** (`everblue-landing-5`).
   Mudou o padrão de fábrica, a chave muda junto: senão o valor salvo de ontem
   esconderia o padrão novo e ninguém veria a mudança.
 - **Sem WebGL a página continua de pé**: o `body` já carrega um gradiente CSS com

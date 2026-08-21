@@ -174,8 +174,9 @@
     globo: {
       // a marca abre sozinha; o logotipo é opcional e entra pelo painel
       lettering: false,
-      tam: 46, // em vmin, limitado pela largura em aplicarTamanho()
+      tam: 35, // em vmin, limitado pela largura em aplicarTamanho()
       stroke: 40,
+      amp: 21, // desvio máximo do cursor, em graus
       tinta: "auto", // "auto" = a tinta que a paleta pede
     },
     // em tela estreita o painel é gaveta e nasce recolhido: aberto de saída, ele
@@ -186,7 +187,7 @@
   /* A chave carrega a versão dos padrões: mudou o padrão de fábrica, a chave
      muda junto e o que estava salvo é ignorado em vez de esconder o padrão novo
      atrás de um valor antigo. */
-  const CHAVE = "everblue-landing-3";
+  const CHAVE = "everblue-landing-5";
   const clone = (o) => JSON.parse(JSON.stringify(o));
 
   /* Mescla o que estava salvo por cima do padrão, campo a campo: um arquivo
@@ -266,13 +267,15 @@
   const grad = window.EBGradient.create(canvas);
   if (!grad) document.body.classList.add("sem-webgl");
 
-  // parâmetros do globo: um objeto só, mutado no lugar. A pose de repouso é a do
-  // preset da marca (everblue-presets-globe.json), não zero — o logo tem uma
-  // inclinação própria e o cursor é desvio em cima dela.
-  const REPOUSO = { rotY: 14, rotX: -6 };
-  /* Quanto o cursor desvia a marca, e com quanta inércia. Não são preferência:
-     é o gesto da identidade, e ele tem de ser o mesmo em toda peça — por isso
-     ficam aqui e não no painel, junto com a abertura e a grade de linhas. */
+  /* Pose de repouso: frontal. O movimento tem de ser simétrico em torno do
+     centro do globo, e uma pose de partida girada faria o desvio pender para um
+     lado — com 14° de repouso, o cruzamento dos eixos ia de −12% a +57% do raio
+     em vez de ir de −36% a +36%. Zero aqui é o que torna esquerda e direita, e
+     cima e baixo, o mesmo movimento. */
+  const REPOUSO = { rotY: 0, rotX: 0 };
+  /* A inércia com que a marca persegue o cursor. Fica aqui e não no painel
+     porque é o peso do gesto, não a força dele: a amplitude é que diz o quanto o
+     globo vira, e essa sim está no painel. */
   const INERCIA = 0.14;
   const G = {
     meridians: 1,
@@ -471,9 +474,7 @@
 
     /* Fora da janela, o globo volta ao repouso pela mesma suavização com que
        seguiu o cursor — some o alvo, não o movimento. */
-    const [tY, tX] = pt.dentro
-      ? poseCircular(pt.gx, pt.gy, FOLLOW.amp)
-      : [0, 0];
+    const [tY, tX] = pt.dentro ? poseCircular(pt.gx, pt.gy, gl.amp) : [0, 0];
     anim.tY = tY;
     anim.tX = tX;
 
@@ -1109,9 +1110,18 @@
       fmt: (v) => String(v),
       dica: "Peso do desenho inteiro — aro e linhas com a mesma espessura.",
     });
+    faixa(s4, {
+      nome: "Amplitude",
+      caminho: "globo.amp",
+      min: 0,
+      max: 70,
+      step: 1,
+      fmt: (v) => v + "°",
+      dica: "O quanto o globo vira quando o cursor vai até a borda. Em 0 ele fica parado na pose de repouso.",
+    });
     hint(
       s4,
-      "Abertura, grade de linhas e o jeito de seguir o cursor não estão aqui: são o gesto da identidade, e têm de sair iguais em toda peça.",
+      "A amplitude é o alcance do gesto, e vale igual em qualquer direção — o cursor desenha um círculo, não uma elipse. Abertura e grade de linhas não estão aqui: são feitio da marca, e têm de sair iguais em toda peça.",
     );
 
     const s6 = secao("Marca");
