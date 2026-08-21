@@ -39,7 +39,9 @@
   <div class="pagina">
     <header class="topo">
       <a class="selo" href="#" aria-label="Everblue">
-        <svg viewBox="0 0 843 150" fill="currentColor" aria-hidden="true"><use href="#letra" /></svg>
+        <svg viewBox="0 0 843 150" fill="currentColor" aria-hidden="true">
+          <use href="#letra" />
+        </svg>
       </a>
       <nav>
         <a href="#">Marca</a>
@@ -54,18 +56,21 @@
         <!-- o globo é desenhado pelo mesmo motor do gerador da marca: um <svg> vazio
            que o JS preenche com os caminhos da geometria, quadro a quadro -->
         <svg id="globo" viewBox="-230 -230 460 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Everblue"></svg>
-        <svg class="logotipo" id="logotipo" viewBox="0 0 843 150" fill="currentColor" aria-hidden="true"><use href="#letra" /></svg>
+        <svg class="logotipo" id="logotipo" viewBox="0 0 843 150" fill="currentColor" aria-hidden="true">
+          <use href="#letra" />
+        </svg>
       </div>
     </main>
 
-    <!-- leitura ao vivo da esfera: os cinco valores saem da pose em vigor, não
-         de um relógio à parte, então param quando o globo para -->
-    <footer class="rodape" aria-hidden="true">
-      <span class="leit"><i>lat</i><b id="vLat">—</b></span>
-      <span class="leit"><i>lon</i><b id="vLon">—</b></span>
-      <span class="leit"><i>azimute</i><b id="vAz">—</b></span>
-      <span class="leit"><i>desvio</i><b id="vDes">—</b></span>
-      <span class="leit"><i>giro</i><b id="vVel">—</b></span>
+    <!-- Leitura ao vivo da esfera: os cinco valores saem da pose em vigor, não
+         de um relógio à parte, então param quando o globo para. Cada um é um
+         botão — clicar acende no globo o lugar de onde o número sai. -->
+    <footer class="rodape" id="rodape" aria-label="Leitura da esfera">
+      <button class="leit" type="button" data-ind="lat" aria-pressed="false"><i>lat</i><b id="vLat">—</b></button>
+      <button class="leit" type="button" data-ind="lon" aria-pressed="false"><i>lon</i><b id="vLon">—</b></button>
+      <button class="leit" type="button" data-ind="az" aria-pressed="false"><i>azimute</i><b id="vAz">—</b></button>
+      <button class="leit" type="button" data-ind="des" aria-pressed="false"><i>desvio</i><b id="vDes">—</b></button>
+      <button class="leit" type="button" data-ind="vel" aria-pressed="false"><i>giro</i><b id="vVel">—</b></button>
     </footer>
   </div>
 

@@ -175,11 +175,32 @@ body.escuro .rodape {
   letter-spacing: 0.04em;
   opacity: 0.62;
 }
+/* cada valor é um botão: clicar acende a guia dele no globo. O aceso ganha uma
+   régua de 1px embaixo — a mesma espessura da guia lá em cima, de propósito. */
 .leit {
   display: flex;
   align-items: baseline;
   gap: 7px;
   white-space: nowrap;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 3px 1px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s, box-shadow 0.2s;
+}
+.leit:hover {
+  opacity: 1;
+}
+.leit:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 3px;
+}
+.leit.on {
+  opacity: 1;
+  box-shadow: 0 1px 0 currentColor;
 }
 .leit i {
   font-style: normal;
@@ -216,6 +237,25 @@ body.escuro .rodape {
   transform-origin: center;
   transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
+/* Guia de leitura: traço de 1px de verdade. O globo é desenhado em unidades de
+   viewBox e escalado pelo CSS, então uma espessura em unidades engrossaria junto
+   com a marca — non-scaling-stroke prende o traço no pixel da tela. */
+.guia {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.guia.on {
+  opacity: 0.75;
+}
+.guia path {
+  vector-effect: non-scaling-stroke;
+}
+/* a guia vai tracejada e o anel inteiro: assim a anotação não se confunde com o
+   traço da marca, e o ponto que ela aponta continua sendo o elemento mais firme */
+.guia path:first-child {
+  stroke-dasharray: 3 5;
+}
+
 #globo {
   width: var(--globo);
   height: var(--globo);

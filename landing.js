@@ -6,7 +6,7 @@
 
    Ordem do arquivo: paletas → estado → ponteiro → laço → painel → atalhos. */
 (function () {
-  const { clamp, FOLLOW, poseCircular, makePainter } = window.EBGlobe;
+  const { clamp, FOLLOW, poseCircular, makePainter, guias, R } = window.EBGlobe;
   const $ = (id) => document.getElementById(id);
 
   /* ---------- paletas ----------
@@ -178,6 +178,7 @@
       lettering: false,
       tam: 26, // em vmin, limitado pela largura em aplicarTamanho()
       stroke: 20,
+      linhas: 1, // espessura dos meridianos e paralelos, relativa ao traço
       aperture: 0.15,
       meridians: 1,
       parallels: 1,
@@ -284,6 +285,7 @@
     gapCenter: 40,
     anchorTop: true,
     stroke: 20,
+    linhas: 1,
     /* Feitio da marca, e não preferência: a abertura termina reta embaixo e as
        linhas somem atrás do globo. Ficam fixos aqui de propósito — no painel
        seriam dois jeitos de desenhar o logo errado. */
@@ -444,6 +446,7 @@
     passoPonteiro(dt);
     passoGlobo(dt);
     passoLeitura(agora, dt);
+    passoGuia();
     passoFundo();
 
     raf = requestAnimationFrame(quadro);
@@ -487,14 +490,15 @@
     /* Só redesenha quando a pose mudou o bastante para aparecer: a tesselagem é
        a parte cara e, parado, ela sairia igual 60× por segundo. Meio décimo de
        grau é menos de um décimo de pixel na borda com o globo em tela cheia. */
-    const sel = gl.stroke + "|" + gl.aperture + "|" + gl.meridians + "|" +
-      gl.parallels + "|" + G.ink;
+    const sel = gl.stroke + "|" + gl.linhas + "|" + gl.aperture + "|" +
+      gl.meridians + "|" + gl.parallels + "|" + G.ink;
     if (
       Math.abs(G.rotY - pintadoY) > 0.05 ||
       Math.abs(G.rotX - pintadoX) > 0.05 ||
       sel !== pintadoSel
     ) {
       G.stroke = gl.stroke;
+      G.linhas = gl.linhas;
       G.aperture = gl.aperture;
       G.meridians = gl.meridians;
       G.parallels = gl.parallels;
@@ -554,6 +558,82 @@
     escreve(LEIT.az, String(Math.round(az) % 360).padStart(3, "0") + "°");
     escreve(LEIT.des, String(Math.round(Math.hypot(nx, ny) * 100)) + "%");
     escreve(LEIT.vel, (LEIT.w < 10 ? LEIT.w.toFixed(1) : String(Math.round(LEIT.w))) + "°/s");
+  }
+
+  /* ---------- guia de leitura ----------
+     Clicar num número do rodapé acende no globo o lugar de onde ele sai: um anel
+     de 1px no ponto que o número descreve, mais uma guia por valor.
+
+     lat e lon falam do ponto da esfera que encara o observador — que cai sempre
+     no centro do disco —, então a guia deles é o círculo de latitude e o
+     meridiano que passam por ali, e nenhum dos dois é o que a marca já desenha.
+     Azimute, desvio e giro falam do cruzamento dos eixos do desenho, que é o que
+     se move na tela, e por isso o anel deles viaja junto. */
+  const IND = { atual: null, g: null, guia: null, anel: null, rastro: [] };
+
+  function montarGuia() {
+    const NS = "http://www.w3.org/2000/svg";
+    const g = document.createElementNS(NS, "g");
+    g.setAttribute("class", "guia");
+    g.setAttribute("fill", "none");
+    g.setAttribute("stroke", "currentColor");
+    g.setAttribute("stroke-width", "1");
+    const mk = () => {
+      const el = document.createElementNS(NS, "path");
+      // a propriedade não é herdada: vale por elemento, não pelo grupo
+      el.setAttribute("vector-effect", "non-scaling-stroke");
+      g.appendChild(el);
+      return el;
+    };
+    IND.guia = mk();
+    IND.anel = mk();
+    IND.g = g;
+    svg.appendChild(g); // depois do pool do painter: a guia fica por cima
+
+    document.querySelectorAll(".leit").forEach((b) => {
+      b.addEventListener("click", () => {
+        IND.atual = IND.atual === b.dataset.ind ? null : b.dataset.ind;
+        IND.rastro.length = 0; // rastro é do valor aceso, não acumula entre eles
+        document.querySelectorAll(".leit").forEach((x) => {
+          const on = x.dataset.ind === IND.atual;
+          x.classList.toggle("on", on);
+          x.setAttribute("aria-pressed", String(on));
+        });
+        g.classList.toggle("on", !!IND.atual);
+        passoGuia();
+      });
+    });
+  }
+
+  function passoGuia() {
+    if (!IND.atual) return;
+    const n = guias.cruzamento(G.rotY, G.rotX); // cruzamento projetado
+    const m = Math.hypot(n.x, n.y) || 1e-6;
+    const naBorda = { x: (n.x / m) * R, y: (n.y / m) * R };
+    let d = "",
+      foco = n;
+
+    if (IND.atual === "lat") {
+      d = guias.paralelo(G.rotX, G.rotY, G.rotX);
+      foco = { x: 0, y: 0 };
+    } else if (IND.atual === "lon") {
+      d = guias.meridiano(-G.rotY, G.rotY, G.rotX);
+      foco = { x: 0, y: 0 };
+    } else if (IND.atual === "az") {
+      d = guias.linha({ x: 0, y: 0 }, naBorda);
+      foco = naBorda;
+    } else if (IND.atual === "des") {
+      d = guias.anel(0, 0, Math.hypot(n.x, n.y));
+    } else if (IND.atual === "vel") {
+      // ~1 s de rastro: é a janela que a própria média da velocidade enxerga
+      IND.rastro.push({ x: n.x, y: n.y });
+      if (IND.rastro.length > 60) IND.rastro.shift();
+      d = guias.rastro(IND.rastro);
+    }
+    IND.guia.setAttribute("d", d);
+    // maior que a espessura da marca de propósito: com 13 o anel ficava enterrado
+    // sob o próprio traço quando o ponto caía em cima de uma linha do desenho
+    IND.anel.setAttribute("d", guias.anel(foco.x, foco.y, 22));
   }
 
   function passoFundo() {
@@ -1051,6 +1131,16 @@
       max: 40,
       step: 0.5,
       fmt: (v) => String(v),
+      dica: "Peso do desenho inteiro, medido no aro.",
+    });
+    faixa(s4, {
+      nome: "Linhas",
+      caminho: "globo.linhas",
+      min: 0.15,
+      max: 2,
+      step: 0.05,
+      fmt: pct,
+      dica: "Espessura dos meridianos e paralelos, em relação ao aro. Relativa de propósito: mexer no traço engrossa tudo sem desfazer o contraste escolhido aqui.",
     });
     faixa(s4, {
       nome: "Abertura",
@@ -1394,6 +1484,7 @@
   montarRodape();
   montarJanela();
   estadoHud();
+  montarGuia();
   medir();
   ajustarLockup();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(ajustarLockup);

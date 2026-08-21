@@ -247,6 +247,32 @@
     return [(rY * 180) / Math.PI, (rX * 180) / Math.PI];
   }
 
+  /* ---------- guias de leitura ----------
+     Caminhos finos que mostram de onde sai cada número do rodapé. Não são a
+     marca — moram aqui só porque a projeção é daqui, e ficam num objeto à parte
+     justamente para não se misturarem com o que desenha o logo. */
+  const guias = {
+    // círculo de latitude e meridiano, em coordenadas da esfera, já projetados
+    paralelo: (lat, rotY, rotX) =>
+      ptsToD(parallel(lat, deg(rotY), deg(rotX), R)),
+    meridiano: (lon, rotY, rotX) =>
+      ptsToD(meridian(lon, deg(rotY), deg(rotX), R)),
+    // o cruzamento dos eixos do desenho: é dele que saem azimute e desvio
+    cruzamento: (rotY, rotX) => project(0, 0, deg(rotY), deg(rotX), R),
+    anel: (cx, cy, r) => {
+      const pts = [];
+      for (let i = 0; i <= 36; i++) {
+        const a = deg((360 * i) / 36);
+        pts.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
+      }
+      return ptsToD(pts);
+    },
+    linha: (a, b) =>
+      "M" + a.x.toFixed(2) + " " + a.y.toFixed(2) +
+      " L" + b.x.toFixed(2) + " " + b.y.toFixed(2),
+    rastro: (pts) => (pts.length > 1 ? ptsToD(pts) : ""),
+  };
+
   /* Desenho num <svg> por pool de <path>: o número de caminhos muda a cada quadro
      quando o horizonte corta as linhas, então reescrever innerHTML jogaria fora e
      recriaria nós 60× por segundo. O pool só troca o "d" e esconde a sobra. */
@@ -258,8 +284,7 @@
     g.setAttribute("stroke-linecap", "round");
     svgEl.appendChild(g);
     const pool = [];
-    let inkAtual = "",
-      swAtual = -1;
+    let inkAtual = "";
 
     return function paint(p) {
       const cs = glyphPaths(p);
@@ -267,10 +292,11 @@
         g.setAttribute("stroke", p.ink);
         inkAtual = p.ink;
       }
-      if (p.stroke !== swAtual) {
-        g.setAttribute("stroke-width", p.stroke);
-        swAtual = p.stroke;
-      }
+      /* Duas espessuras: o aro carrega o peso da marca e os meridianos e
+         paralelos podem ir mais finos que ele. A razão é relativa de propósito —
+         mexer no traço engrossa o desenho inteiro sem desfazer o contraste
+         escolhido entre a borda e as linhas. */
+      const swLinha = p.stroke * (p.linhas == null ? 1 : p.linhas);
       for (let i = 0; i < cs.length; i++) {
         let el = pool[i];
         if (!el) {
@@ -279,6 +305,11 @@
           pool.push(el);
         }
         el.setAttribute("d", cs[i].d);
+        const sw = cs[i].papel === "linha" ? swLinha : p.stroke;
+        if (el.__sw !== sw) {
+          el.setAttribute("stroke-width", sw);
+          el.__sw = sw;
+        }
         // o corte reto vale só no arco da silhueta, e só quando pedido
         const cap = cs[i].papel === "aro" && p.pontaReta ? "butt" : "round";
         if (el.__cap !== cap) {
@@ -298,5 +329,14 @@
     };
   }
 
-  global.EBGlobe = { R, deg, clamp, glyphPaths, makePainter, poseCircular, FOLLOW };
+  global.EBGlobe = {
+    R,
+    deg,
+    clamp,
+    glyphPaths,
+    makePainter,
+    poseCircular,
+    guias,
+    FOLLOW,
+  };
 })(window);
