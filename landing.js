@@ -267,6 +267,15 @@
   const grad = window.EBGradient.create(canvas);
   if (!grad) document.body.classList.add("sem-webgl");
 
+  /* Pose de espera: com o ponteiro parado, a marca não fica frontal — ela se
+     acomoda num azimute fixo, que é a inclinação com que o logo repousa. O
+     azimute é a direção em que o cruzamento dos eixos sai do centro (0° ao
+     norte, 90° a leste), e a força é a fração do desvio máximo em vigor, então a
+     pose de espera acompanha o slider de amplitude em vez de brigar com ele.
+
+     Entra depois de um tempo parado e sai no primeiro movimento do mouse. */
+  const ESPERA = { az: 245, forca: 0.7, atraso: 1.2, entrada: 1.4 };
+
   /* Pose de repouso: frontal. O movimento tem de ser simétrico em torno do
      centro do globo, e uma pose de partida girada faria o desvio pender para um
      lado — com 14° de repouso, o cruzamento dos eixos ia de −12% a +57% do raio
@@ -444,7 +453,7 @@
     fps += (1 / Math.max(dt, 1e-4) - fps) * 0.06;
 
     passoPonteiro(dt);
-    passoGlobo(dt);
+    passoGlobo(dt, agora);
     passoLeitura(agora, dt);
     passoGuia();
     passoFundo();
@@ -469,12 +478,31 @@
     pt.vy += ((pt.y - py) / Math.max(dt, 1e-3) - pt.vy) * kv;
   }
 
-  function passoGlobo(dt) {
+  function passoGlobo(dt, agora) {
     const gl = S.globo;
 
     /* Fora da janela, o globo volta ao repouso pela mesma suavização com que
        seguiu o cursor — some o alvo, não o movimento. */
-    const [tY, tX] = pt.dentro ? poseCircular(pt.gx, pt.gy, gl.amp) : [0, 0];
+    let [tY, tX] = pt.dentro ? poseCircular(pt.gx, pt.gy, gl.amp) : [0, 0];
+
+    /* Parado o bastante, a pose de espera assume — misturada, não trocada, para
+       a passagem não ter emenda. Mexeu o mouse, ela devolve o comando na hora. */
+    const w = clamp(
+      ((agora - pt.ultimo) / 1000 - ESPERA.atraso) / ESPERA.entrada,
+      0,
+      1,
+    );
+    if (w > 0) {
+      const a = (ESPERA.az * Math.PI) / 180;
+      // azimute: 0° ao norte, crescendo para leste; y da tela cresce para baixo
+      const [eY, eX] = poseCircular(
+        Math.sin(a) * ESPERA.forca,
+        -Math.cos(a) * ESPERA.forca,
+        gl.amp,
+      );
+      tY = tY * (1 - w) + eY * w;
+      tX = tX * (1 - w) + eX * w;
+    }
     anim.tY = tY;
     anim.tX = tX;
 

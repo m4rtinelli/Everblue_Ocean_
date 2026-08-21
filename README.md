@@ -107,6 +107,12 @@ onde está).
   com a marca: `vector-effect: non-scaling-stroke` prende o traço no pixel da
   tela. O anel é maior que a espessura do desenho de propósito — menor que isso
   ele fica enterrado sob o próprio traço quando o ponto cai em cima de uma linha.
+- **Com o mouse parado, a marca se acomoda no azimute 245°.** O azimute é a
+  direção em que o cruzamento dos eixos sai do centro (0° ao norte, 90° a leste),
+  e a força da pose é uma fração do desvio máximo em vigor — então ela acompanha
+  o slider de amplitude em vez de brigar com ele. Entra depois de um tempo parado
+  e sai no primeiro movimento do mouse. É também a pose com que a página abre,
+  antes de qualquer gesto.
 - **A pose de repouso é frontal, e isso é o que centra o movimento.** Uma pose de
   partida girada — a marca tem 14° de rotação no preset — faria o desvio pender
   para um lado: o cruzamento dos eixos iria de −12% a +57% do raio em vez de ir
