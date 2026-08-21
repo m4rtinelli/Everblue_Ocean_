@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Everblue</title>
+  <meta name="description" content="A marca Everblue em movimento: o globo segue o cursor e o gradiente responde ao gesto.">
+  <meta name="theme-color" content="#1226C8">
+  <link rel="stylesheet" href="landing.css">
+  <script src="globe-core.js" defer></script>
+  <script src="gradient.js" defer></script>
+  <script src="landing.js" defer></script>
+</head>
+
+<body>
+
+  <!-- O logotipo é vetor da marca, e não texto: sai igual em qualquer máquina.
+       Mora aqui uma vez só, como símbolo, e é usado nos dois lugares que
+       precisam dele — o selo do topo e o lockup do meio. -->
+  <svg class="hide" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="letra" viewBox="0 0 843 150">
+      <path d="M26.53 142.3C18.05 137.8 11.5 131.35 6.90002 122.93C2.30002 114.51 0 104.48 0 92.83V91.19C0 80.01 2.35002 70.17 7.05002 61.65C11.75 53.13 18.35 46.54 26.83 41.87C35.31 37.2 45.04 34.87 56.01 34.87C66.98 34.87 76.42 37.05 84.33 41.41C92.23 45.77 98.35 52.06 102.68 60.27C107.01 68.48 109.17 78.18 109.17 89.35V97.43H18.19V81.38H89.75L84.43 86.7V82.3C84.43 76.1 83.26 70.7 80.9 66.1C78.55 61.5 75.23 57.97 70.93 55.52C66.64 53.07 61.56 51.84 55.7 51.84C49.84 51.84 44.27 53.24 39.6 56.03C34.93 58.82 31.3 62.76 28.71 67.84C26.12 72.92 24.83 78.83 24.83 85.58V97.44C24.83 104.39 26.11 110.44 28.66 115.58C31.22 120.73 34.86 124.68 39.6 127.44C44.34 130.2 50.01 131.58 56.62 131.58C61.8 131.58 66.3 130.76 70.11 129.13C73.93 127.5 76.94 125.19 79.16 122.23C81.37 119.27 82.72 115.74 83.2 111.65H107.73C106.84 118.94 104.19 125.4 99.76 131.02C95.33 136.64 89.38 141.06 81.92 144.26C74.46 147.46 65.96 149.06 56.42 149.06C44.97 149.06 35 146.81 26.52 142.31L26.53 142.3Z" />
+      <path d="M111.81 37.72H137.57L170.89 138.61L165.78 139.12L198.8 37.72H223.33L186.02 146.79H150.34L111.8 37.72H111.81Z" />
+      <path d="M252.48 142.3C244 137.8 237.45 131.35 232.85 122.93C228.25 114.51 225.95 104.48 225.95 92.83V91.19C225.95 80.01 228.3 70.17 233 61.65C237.7 53.13 244.3 46.54 252.78 41.87C261.26 37.2 270.99 34.87 281.96 34.87C292.93 34.87 302.37 37.05 310.28 41.41C318.18 45.77 324.3 52.06 328.63 60.27C332.96 68.48 335.12 78.18 335.12 89.35V97.43H244.14V81.38H315.7L310.38 86.7V82.3C310.38 76.1 309.21 70.7 306.85 66.1C304.5 61.5 301.18 57.97 296.88 55.52C292.59 53.07 287.51 51.84 281.65 51.84C275.79 51.84 270.22 53.24 265.55 56.03C260.88 58.82 257.25 62.76 254.66 67.84C252.07 72.92 250.78 78.83 250.78 85.58V97.44C250.78 104.39 252.06 110.44 254.61 115.58C257.17 120.73 260.81 124.68 265.55 127.44C270.29 130.2 275.96 131.58 282.57 131.58C287.75 131.58 292.25 130.76 296.06 129.13C299.88 127.5 302.89 125.19 305.11 122.23C307.32 119.27 308.67 115.74 309.15 111.65H333.68C332.79 118.94 330.14 125.4 325.71 131.02C321.28 136.64 315.33 141.06 307.87 144.26C300.41 147.46 291.91 149.06 282.37 149.06C270.92 149.06 260.95 146.81 252.47 142.31L252.48 142.3Z" />
+      <path d="M352.72 37.7199H375.92V76.1599L369.99 78.6099C370.26 70.7699 372.17 63.6299 375.71 57.1899C379.25 50.7499 384.26 45.6399 390.74 41.8599C397.21 38.0799 404.71 36.1899 413.23 36.1899H415.48C416.77 36.2599 418.07 36.3599 419.36 36.4999C420.65 36.6399 421.95 36.8399 423.24 37.1099V59.0899C421.54 58.8199 419.85 58.5999 418.18 58.4199C416.51 58.2499 414.86 58.1299 413.22 58.0599H411.28C403.65 58.0599 397.29 59.2899 392.22 61.7399C387.14 64.1899 383.36 67.8099 380.87 72.5799C378.38 77.3499 377.14 83.0799 377.14 89.7499V146.59H352.71V37.7199H352.72Z" />
+      <path d="M477.02 144.14C470.65 140.87 465.6 136.49 461.89 131C458.18 125.51 456.01 119.43 455.4 112.75L461.12 113.47V146.59H436.69V0H461.12V71.45L455.6 71.55C456.62 64.39 459.16 58.04 463.22 52.49C467.27 46.94 472.51 42.61 478.91 39.51C485.32 36.41 492.4 34.86 500.17 34.86C509.44 34.86 517.63 36.97 524.75 41.2C531.87 45.43 537.44 51.71 541.46 60.06C545.48 68.41 547.49 78.61 547.49 90.68V92.62C547.49 104.82 545.29 115.16 540.9 123.64C536.51 132.12 530.63 138.48 523.27 142.7C515.91 146.92 507.8 149.04 498.94 149.04C490.69 149.04 483.39 147.4 477.01 144.13L477.02 144.14ZM507.38 127.06C511.91 124.27 515.44 120.01 517.96 114.28C520.48 108.56 521.74 101.4 521.74 92.81V91.17C521.74 82.65 520.55 75.55 518.16 69.86C515.77 64.17 512.4 59.91 508.04 57.08C503.68 54.25 498.53 52.84 492.6 52.84C486.67 52.84 481.54 54.31 476.6 57.24C471.66 60.17 467.69 64.57 464.69 70.43C461.69 76.29 460.19 83.48 460.19 92V94.04C460.19 101.95 461.64 108.69 464.53 114.28C467.43 119.87 471.26 124.09 476.03 126.96C480.8 129.82 485.98 131.25 491.57 131.25C497.57 131.25 502.83 129.85 507.36 127.06H507.38Z" />
+      <path d="M566.23 0H590.66V146.59H566.23V0Z" />
+      <path d="M632.65 144.75C626.65 141.75 622.07 137.24 618.9 131.21C615.73 125.18 614.15 117.7 614.15 108.77V37.73H638.48V102.23C638.48 109.25 639.55 114.8 641.7 118.89C643.85 122.98 646.71 125.84 650.29 127.48C653.87 129.11 658.14 129.93 663.12 129.93C668.1 129.93 672.87 128.82 677.02 126.61C681.18 124.4 684.48 121.07 686.94 116.64C689.39 112.21 690.62 106.69 690.62 100.08V37.72H714.95V146.59H691.64V110.4L697.57 108.66C697.02 116.36 694.91 123.31 691.23 129.51C687.55 135.71 682.54 140.55 676.2 144.03C669.86 147.51 662.6 149.24 654.43 149.24C646.26 149.24 638.65 147.74 632.66 144.74L632.65 144.75Z" />
+      <path d="M759.52 142.3C751.04 137.8 744.49 131.35 739.89 122.93C735.29 114.51 732.99 104.48 732.99 92.83V91.19C732.99 80.01 735.34 70.17 740.04 61.65C744.74 53.13 751.34 46.54 759.82 41.87C768.3 37.2 778.03 34.87 789 34.87C799.97 34.87 809.41 37.05 817.32 41.41C825.22 45.77 831.34 52.06 835.67 60.27C840 68.48 842.16 78.18 842.16 89.35V97.43H751.18V81.38H822.74L817.42 86.7V82.3C817.42 76.1 816.25 70.7 813.89 66.1C811.54 61.5 808.22 57.97 803.92 55.52C799.63 53.07 794.55 51.84 788.69 51.84C782.83 51.84 777.26 53.24 772.59 56.03C767.92 58.82 764.29 62.76 761.7 67.84C759.11 72.92 757.82 78.83 757.82 85.58V97.44C757.82 104.39 759.1 110.44 761.65 115.58C764.21 120.73 767.85 124.68 772.59 127.44C777.33 130.2 783 131.58 789.61 131.58C794.79 131.58 799.29 130.76 803.1 129.13C806.92 127.5 809.93 125.19 812.15 122.23C814.36 119.27 815.71 115.74 816.19 111.65H840.72C839.83 118.94 837.18 125.4 832.75 131.02C828.32 136.64 822.37 141.06 814.91 144.26C807.45 147.46 798.95 149.06 789.41 149.06C777.96 149.06 767.99 146.81 759.51 142.31L759.52 142.3Z" />
+    </symbol>
+  </svg>
+
+  <!-- o gradiente ocupa a tela inteira; o véu é o clarão baixo que segura o
+     contraste do lockup sem obrigar o fundo a clarear no meio -->
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <div class="veu" aria-hidden="true"></div>
+
+  <div class="pagina">
+    <header class="topo">
+      <a class="selo" href="#" aria-label="Everblue">
+        <svg viewBox="0 0 843 150" fill="currentColor" aria-hidden="true"><use href="#letra" /></svg>
+      </a>
+      <nav>
+        <a href="#">Marca</a>
+        <a href="#">Sistema</a>
+        <a href="#">Estúdio</a>
+        <a href="#">Contato</a>
+      </nav>
+    </header>
+
+    <main class="heroi">
+      <div class="lockup" id="lockup">
+        <!-- o globo é desenhado pelo mesmo motor do gerador da marca: um <svg> vazio
+           que o JS preenche com os caminhos da geometria, quadro a quadro -->
+        <svg id="globo" viewBox="-230 -230 460 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Everblue"></svg>
+        <svg class="logotipo" id="logotipo" viewBox="0 0 843 150" fill="currentColor" aria-hidden="true"><use href="#letra" /></svg>
+      </div>
+    </main>
+
+    <!-- leitura ao vivo da esfera: os cinco valores saem da pose em vigor, não
+         de um relógio à parte, então param quando o globo para -->
+    <footer class="rodape" aria-hidden="true">
+      <span class="leit"><i>lat</i><b id="vLat">—</b></span>
+      <span class="leit"><i>lon</i><b id="vLon">—</b></span>
+      <span class="leit"><i>azimute</i><b id="vAz">—</b></span>
+      <span class="leit"><i>desvio</i><b id="vDes">—</b></span>
+      <span class="leit"><i>giro</i><b id="vVel">—</b></span>
+    </footer>
+  </div>
+
+  <!-- painel de controle: flutua sobre a página e arrasta pela barra de título -->
+  <aside class="hud" id="hud" aria-label="Controles da cena">
+    <div class="hud-top" id="hudTop">
+      <span class="hud-titulo">Controles</span>
+      <span class="hud-fps" id="hudFps">—</span>
+      <button class="icone" id="hudMin" type="button" aria-expanded="true" aria-label="Minimizar painel" title="Minimizar (M)">–</button>
+      <button class="icone" id="hudFechar" type="button" aria-label="Esconder painel" title="Esconder (H)">×</button>
+    </div>
+
+    <div class="hud-body" id="hudBody"><!-- montado por landing.js --></div>
+
+    <div class="hud-pe">
+      <button class="pe-btn" id="hudCopiar" type="button">Copiar estado</button>
+      <button class="pe-btn" id="hudReset" type="button">Restaurar</button>
+      <span class="hud-nota" id="hudNota" role="status" aria-live="polite"></span>
+    </div>
+  </aside>
+
+  <button id="hudAbrir" type="button" aria-label="Mostrar controles" title="Mostrar controles (H)">⚙</button>
+
+</body>
+
+</html>
