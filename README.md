@@ -12,6 +12,7 @@ basta abrir `index.html` no navegador, como o gerador de globo.
 | `landing.css` | estilo da página e do painel |
 | `globe-core.js` | geometria do globo, portada do gerador |
 | `gradient.js` | o fundo em WebGL (shader e uniformes) |
+| `video.js` | gravação do canvas do fundo em vídeo |
 | `landing.js` | estado, ponteiro, laço de quadro e montagem do painel |
 
 Os scripts são clássicos com `defer`, e não módulos ES: assim a página continua
@@ -88,6 +89,13 @@ onde está).
   grade de linhas não estão aqui: são feitio da marca.
 - **Marca** — o interruptor do logotipo e a tinta. "Da paleta" deixa a
   luminância decidir; qualquer outra fixa a cor.
+- **Vídeo do fundo** — grava só o canvas do gradiente, sem marca e sem painel:
+  formato (tela, 16:9, 9:16, 1:1), altura (720p a 2160p), container, 24/30/60
+  fps, qualidade, duração e um interruptor para ignorar o cursor e capturar só o
+  movimento próprio do fundo. A qualidade é medida por pixel e por quadro e o
+  slider mostra o resultado em Mb/s, que acompanha o tamanho e os fps escolhidos.
+  Enquanto grava, o canvas assume a resolução de saída e o CSS o mostra
+  enquadrado — o que se vê é o que vai para o arquivo.
 - **Presets** — guardam o desenho inteiro (cores, movimento, gradiente e globo) e
   deixam de fora a janela do painel. Ficam neste navegador; **Exportar** grava um
   `.json` e **Importar** traz de volta. Salvar com um nome que já existe
@@ -126,6 +134,21 @@ onde está).
 - **A cor do texto e a tinta da marca não são escolhidas, são deduzidas.** Saem
   da luminância das cores em vigor, com peso maior para a âncora do centro —
   onde a marca pousa. É o que faz uma paleta montada à mão continuar legível.
+- **MP4/H.264 High é o padrão porque é o que abre em tudo** — inclusive After
+  Effects e Premiere, que é para onde estes vídeos vão. O perfil importa: High
+  tem CABAC e transformada 8×8, que é o que segura gradiente sem abrir faixa, e
+  Baseline não tem nenhum dos dois. A lista pede High 5.2 primeiro e desce até o
+  que o navegador aceitar — quem não aguenta responde "não" no `isTypeSupported`.
+  VP9 fica no WebM, que rende mais por bit e serve à web; VP9 dentro de MP4 quase
+  nenhum navegador oferece na gravação, e não abriria nos programas de edição.
+- **O tamanho do GOP não dá para escolher**: o `MediaRecorder` não expõe. Quem
+  precisa cortar em qualquer quadro recodifica depois —
+  `ffmpeg -i a.mp4 -c:v prores_ks -profile:v 3 a.mov`.
+- **A taxa de bits sai por pixel e por quadro**, e não em Mb/s fixos: o mesmo
+  número serviria mal a 720p e pior ainda a 4K. O padrão é folgado (0,3) e o teto
+  é alto (240 Mb/s). Gradiente é o pior caso para o codec: área enorme de
+  variação mínima, onde a compressão paga com faixas justamente no que a página
+  tem de mais delicado.
 - **Grão sempre ligado, mesmo em 0.** Há um dither fixo de meio nível de 8 bits
   no shader: sem ele, um gradiente desta suavidade sai em faixas na maioria das
   telas. O slider é o grão de cima disso.

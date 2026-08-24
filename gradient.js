@@ -283,13 +283,19 @@ void main(){
       H = 0,
       qual = 1;
 
-    function resize(qualidade) {
+    /* Sem tamanho forçado, o canvas é renderizado abaixo da tela e esticado pelo
+       CSS — o gradiente é liso por natureza e não precisa de pixel físico, e essa
+       é de longe a maior alavanca de desempenho da página. A gravação passa o
+       tamanho de saída e a qualidade sai da conta: ali o que vale é o pixel do
+       arquivo, não o da tela. */
+    function resize(qualidade, forcaW, forcaH) {
       if (qualidade != null) qual = qualidade;
-      /* O gradiente é liso por natureza, então não precisa de pixel físico: o
-         canvas é renderizado abaixo da tela e esticado pelo CSS. É de longe o
-         maior botão de desempenho da página. */
-      const w = Math.max(2, Math.round(canvas.clientWidth * qual));
-      const h = Math.max(2, Math.round(canvas.clientHeight * qual));
+      const w = forcaW
+        ? Math.max(2, Math.round(forcaW))
+        : Math.max(2, Math.round(canvas.clientWidth * qual));
+      const h = forcaH
+        ? Math.max(2, Math.round(forcaH))
+        : Math.max(2, Math.round(canvas.clientHeight * qual));
       if (w === W && h === H) return;
       W = canvas.width = w;
       H = canvas.height = h;

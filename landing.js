@@ -181,6 +181,16 @@
     },
     // em tela estreita o painel é gaveta e nasce recolhido: aberto de saída, ele
     // cobriria justamente a marca que veio ver
+    // gravação do fundo: só o canvas, sem marca nem painel
+    video: {
+      formato: "tela",
+      altura: 1080,
+      fps: 60,
+      dur: 8,
+      bpp: 0.3, // bits por pixel por quadro: a taxa sai daqui e do tamanho
+      container: "mp4",
+      semCursor: true,
+    },
     hud: { aberto: true, min: innerWidth < 780, x: null, y: null },
   };
 
@@ -581,6 +591,91 @@
     escreve(LEIT.vel, (LEIT.w < 10 ? LEIT.w.toFixed(1) : String(Math.round(LEIT.w))) + "°/s");
   }
 
+  /* ---------- gravação do fundo ----------
+     Enquanto grava, o canvas sai do tamanho da tela e assume o tamanho do
+     arquivo: o shader passa a desenhar na resolução de saída, e o CSS mostra o
+     mesmo quadro enquadrado, para o que se vê ser o que se grava. */
+  const EXP = { on: false, w: 0, h: 0, ctrl: null, botao: null };
+
+  /* Taxa de bits pedida ao codec. Sai por pixel e por quadro, e não em Mb/s
+     fixos, senão o mesmo número serviria mal a 720p e pior ainda a 4K. Gradiente
+     é o pior caso para compressão — área enorme de variação mínima, onde o codec
+     paga com faixa justamente no que a página tem de mais delicado —, então o
+     padrão é folgado e o teto é alto. */
+  function taxaVideo(bpp) {
+    const { w, h } = tamanhoVideo();
+    return clamp(
+      Math.round(w * h * S.video.fps * (bpp == null ? S.video.bpp : bpp)),
+      8e6,
+      240e6,
+    );
+  }
+
+  function tamanhoVideo() {
+    const f = S.video.formato;
+    const asp =
+      f === "16:9" ? 16 / 9 : f === "9:16" ? 9 / 16 : f === "1:1" ? 1 : innerWidth / innerHeight;
+    // par nos dois lados: H.264 recusa dimensão ímpar
+    const par = (n) => Math.max(2, Math.round(n / 2) * 2);
+    return { w: par(S.video.altura * asp), h: par(S.video.altura) };
+  }
+
+  function enquadrarCanvas(w, h) {
+    const st = canvas.style;
+    if (!w) {
+      canvas.classList.remove("gravando");
+      st.width = st.height = st.left = st.top = "";
+      return;
+    }
+    const k = Math.min(innerWidth / w, innerHeight / h);
+    canvas.classList.add("gravando");
+    st.width = Math.round(w * k) + "px";
+    st.height = Math.round(h * k) + "px";
+    st.left = Math.round((innerWidth - w * k) / 2) + "px";
+    st.top = Math.round((innerHeight - h * k) / 2) + "px";
+  }
+
+  function rotuloGravar(txt, gravando) {
+    if (!EXP.botao) return;
+    EXP.botao.textContent = txt;
+    EXP.botao.classList.toggle("gravando", !!gravando);
+  }
+
+  function alternarGravacao() {
+    if (EXP.ctrl) return EXP.ctrl.parar();
+    if (!grad) return aviso("Sem WebGL não há o que gravar.");
+    const { w, h } = tamanhoVideo();
+    EXP.on = true;
+    EXP.w = w;
+    EXP.h = h;
+    enquadrarCanvas(w, h);
+    const bits = taxaVideo();
+    EXP.ctrl = window.EBVideo.gravar({
+      canvas,
+      fps: S.video.fps,
+      dur: S.video.dur,
+      bits,
+      container: S.video.container,
+      nome: "everblue-fundo-" + w + "x" + h + "-" + S.video.fps + "fps",
+      aviso,
+      aoTick: (seg) => rotuloGravar("■ Parar · " + seg.toFixed(1) + "s", true),
+      aoFim: (codec, tam) => {
+        EXP.on = false;
+        EXP.ctrl = null;
+        enquadrarCanvas();
+        rotuloGravar("● Gravar");
+        aviso(tam ? codec.nome + " · " + tam : "Nada foi gravado.");
+      },
+    });
+    if (!EXP.ctrl) {
+      EXP.on = false;
+      enquadrarCanvas();
+    } else {
+      rotuloGravar("■ Parar", true);
+      aviso("Gravando " + w + "×" + h + " · " + EXP.ctrl.codec.nome);
+    }
+  }
+
   /* ---------- guia de leitura ----------
      Clicar num número do rodapé acende no globo o lugar de onde ele sai: um anel
      de 1px no ponto que o número descreve, mais uma guia por valor.
@@ -660,7 +755,8 @@
   function passoFundo() {
     if (!grad) return;
     const g = S.grad;
-    stGrad.infl = g.infl;
+    // gravando sem cursor, o fundo entrega só o movimento próprio dele
+    stGrad.infl = EXP.on && S.video.semCursor ? 0 : g.infl;
     stGrad.reach = g.reach;
     stGrad.scale = g.scale;
     stGrad.warp = g.warp;
@@ -677,7 +773,7 @@
       const f = g.fx[e.chave];
       stGrad.fx[e.chave] = f.on ? f.v : 0;
     }
-    grad.resize(g.qual);
+    grad.resize(g.qual, EXP.on ? EXP.w : 0, EXP.on ? EXP.h : 0);
     grad.draw(
       stGrad,
       tempo,
@@ -1169,6 +1265,77 @@
       "<b>H</b> esconde o painel · <b>M</b> minimiza · a barra de título arrasta · clicar na página dá um estouro nas ondas.",
     );
 
+    // ---- vídeo do fundo
+    const sv = secao("Vídeo do fundo");
+    chips(sv, {
+      caminho: "video.formato",
+      opcoes: [
+        ["tela", "Tela"],
+        ["16:9", "16:9"],
+        ["9:16", "9:16"],
+        ["1:1", "1:1"],
+      ],
+    });
+    chips(sv, {
+      caminho: "video.altura",
+      opcoes: [
+        [720, "720p"],
+        [1080, "1080p"],
+        [1440, "1440p"],
+        [2160, "2160p"],
+      ],
+    });
+    chips(sv, {
+      caminho: "video.container",
+      opcoes: [
+        ["mp4", "MP4"],
+        ["webm", "WebM"],
+      ],
+    });
+    chips(sv, {
+      caminho: "video.fps",
+      opcoes: [
+        [24, "24"],
+        [30, "30"],
+        [60, "60 fps"],
+      ],
+    });
+    faixa(sv, {
+      nome: "Qualidade",
+      caminho: "video.bpp",
+      min: 0.05,
+      max: 0.8,
+      step: 0.01,
+      fmt: (v) => Math.round(taxaVideo(v) / 1e6) + " Mb/s",
+      dica: "Taxa de bits pedida ao codec, medida por pixel e por quadro — o valor em Mb/s acompanha o tamanho e os fps escolhidos aqui em cima.",
+    });
+    faixa(sv, {
+      nome: "Duração",
+      caminho: "video.dur",
+      min: 2,
+      max: 30,
+      step: 0.5,
+      fmt: (v) => v + "s",
+    });
+    interruptor(sv, {
+      nome: "Ignorar o cursor",
+      caminho: "video.semCursor",
+      dica: "Grava só o movimento próprio do fundo, sem os efeitos do ponteiro.",
+    });
+    EXP.botao = el("button", "pe-btn wide", "● Gravar");
+    EXP.botao.type = "button";
+    EXP.botao.addEventListener("click", alternarGravacao);
+    sv.appendChild(EXP.botao);
+    hint(
+      sv,
+      "Grava só o canvas do fundo — sem marca, sem painel, sem página. " +
+        notaCodec(),
+    );
+    hint(
+      sv,
+      "O <b>MP4</b> é o que abre em tudo, inclusive After Effects e Premiere — é por isso que ele é o padrão. O <b>WebM</b> rende mais por bit e serve à web. O tamanho do GOP não dá para escolher: o <code>MediaRecorder</code> não expõe. Se precisar cortar em qualquer quadro, recodifique para ProRes depois.",
+    );
+
     // ---- presets: por último, porque guardam tudo que está acima
     montarPresets(secao("Presets"));
   }
@@ -1361,6 +1528,20 @@
 
     lerPresets();
     desenhar();
+  }
+
+  /* O que o navegador aceita muda de máquina para máquina, e prometer VP9 em MP4
+     seria mentir na maioria delas: a dica diz o que ele vai entregar de fato. */
+  function notaCodec() {
+    const V = window.EBVideo;
+    if (!V || !V.disponiveis().length)
+      return "<b>Este navegador não grava vídeo.</b>";
+    const mp4 = V.escolher("mp4"),
+      webm = V.escolher("webm");
+    return (
+      "Neste navegador o <b>MP4</b> sai em " + mp4.nome.replace(" · MP4", "") +
+      " e o <b>WebM</b> em " + webm.nome.replace(" · WebM", "") + "."
+    );
   }
 
   /* ---------- rodapé do painel ---------- */

@@ -84,6 +84,13 @@ body {
 body.sem-webgl #bg {
   display: none;
 }
+/* Gravando, o canvas deixa de cobrir a tela e passa a mostrar exatamente o
+   quadro que está indo para o arquivo — mesmo formato, centrado, com o fundo de
+   reserva aparecendo em volta. O JS escreve posição e tamanho. */
+#bg.gravando {
+  inset: auto;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
 
 /* A cor do texto troca de uma vez com a paleta, sem transição: o fundo muda no
    quadro seguinte e um texto atravessando meio segundo de cor intermediária
@@ -672,6 +679,25 @@ input[type="color"]::-moz-color-swatch {
 }
 .pe-btn {
   padding: 7px 13px;
+}
+.pe-btn.wide {
+  width: 100%;
+  margin-top: 12px;
+  padding: 9px 13px;
+  text-align: center;
+}
+/* gravando, o botão é o próprio aviso de que a página está sendo capturada */
+.pe-btn.gravando {
+  background: #e8503a;
+  color: #fff;
+  border-color: transparent;
+}
+.hint code {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: var(--hud-chip);
+  padding: 1px 5px;
+  border-radius: 5px;
 }
 .hud-nota {
   flex: 1;
