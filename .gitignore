@@ -1,0 +1,17 @@
+# Lixo de sincronização e de sistema de arquivos.
+# O Google Drive reescreve o desktop.ini sozinho a cada vez que a pasta é tocada
+# — ele guarda ícone e estado de sincronização, não conteúdo da peça. O Explorer
+# e o Finder fazem o mesmo com os seus.
+desktop.ini
+Thumbs.db
+ehthumbs.db
+.DS_Store
+._*
+
+# Fontes licenciadas. Os arquivos da Trust (MCKL) entram em fontes/ vindos do kit
+# de webfont da compra e não sobem para o repositório — a licença é por uso, não
+# por cópia. O LEIAME de lá fica versionado; os binários, não.
+fontes/*.woff2
+fontes/*.woff
+fontes/*.otf
+fontes/*.ttf

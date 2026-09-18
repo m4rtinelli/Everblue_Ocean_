@@ -77,11 +77,15 @@ onde está).
 - **Cores** — as quatro paletas são ponto de partida: escolher uma copia as
   cores para o estado, e a partir dali cada uma das cinco âncoras (mais o
   "fundo", que é o piso do campo e a cor da vinheta) é editável por amostra ou
-  por hex. Mexer numa cor solta a paleta e nenhum chip fica aceso.
+  por hex. As cinco vão de cima para baixo — *topo*, *alta*, *meio*, *baixa*,
+  *base* —, e é nessa ordem que aparecem na tela. Mexer numa cor solta a paleta e
+  nenhum chip fica aceso. As quatro paletas saem todas dos mesmos cinco valores
+  da marca — ver abaixo.
 - **Movimento do fundo** — o que ele faz sozinho, sem ninguém no mouse: padrão do
-  caminho das âncoras, velocidade (o relógio), amplitude (o caminho), giro da
-  composição inteira e respiro. Zerar velocidade e amplitude deixa o fundo parado
-  como arte fixa.
+  caminho das âncoras, velocidade (o relógio), amplitude (o caminho), giro e
+  respiro. O giro é o único que não se move: é a inclinação da rampa, um ângulo
+  que fica onde for posto. Zerar velocidade e amplitude deixa o fundo parado como
+  arte fixa.
 - **Gradiente** — escala, deformação, contraste, grão, vinheta e resolução.
 - **Globo** — tamanho, traço e amplitude. O traço é um só para o desenho inteiro
   (aro e linhas com a mesma espessura) e a amplitude é o quanto ele vira quando o
@@ -102,6 +106,49 @@ onde está).
   substitui aquele; o × no chip apaga.
 
 ## Detalhes que não são gosto
+
+- **O gradiente só conhece cinco cores.** `#040B21` (abismo), `#0D2457`
+  (marinho), `#024CCA` (cobalto), `#487BE0` (pulso) e `#DCE2FF` (papel) estão
+  numa tabela só, o `MARCA` no alto de `landing.js`, e as mesmas cinco são tokens
+  em `landing.css`. As quatro paletas não são quatro esquemas de cor: são quatro
+  composições destes mesmos valores — o que muda de uma para outra é em que
+  altura da rampa cada um entra e quanto espaço ocupa, nunca o matiz. Cor nova entra no `MARCA` e
+  chega em todas de uma vez; cor fora dele só existe se alguém digitar no painel,
+  e aí já é peça, não marca. A tinta da marca segue a mesma regra: os chips de
+  *Marca · Tinta* são as quatro, e mais nada.
+- **O campo é uma rampa vertical: funda em cima, clara embaixo.** As cinco
+  âncoras não são cinco manchas espalhadas — são cinco faixas empilhadas, na
+  ordem em que o painel as mostra (topo, alta, meio, baixa, base). As alturas são
+  as paradas da folha de marca — 10%, 27%, 52%, 75% e 100% a contar do topo —, e
+  não cinco passos iguais: é isso que faz o escuro segurar o terço de cima e o
+  claro só encostar na borda de baixo. Para sair
+  faixa e não bolha, o peso da âncora conta a distância horizontal por uma
+  fração: cada uma se espalha de lado e fica curta na vertical. O desencontro
+  pequeno no eixo x é o que impede a rampa de virar listra de régua.
+- **O raio da faixa é lido em fração de meia-tela, não em unidades do quadro.**
+  A escala do peso desconta a proporção antes de medir. Sem isso, a mesma paleta
+  que cobre um monitor deitado abriria buraco entre as faixas num retrato, onde a
+  altura é quase o dobro — e a ponta clara da rampa cairia para fora da tela.
+- **O giro é ângulo, não velocidade.** Ele já foi rotação contínua, e era
+  coerente quando a composição era cinco manchas espalhadas — girar não tirava
+  nada do lugar. Numa rampa vertical, rotação que anda levaria o topo escuro para
+  o lado e, mais adiante, para baixo: o desenho da marca deixaria de ser o
+  desenho da marca em algum ponto da animação. O que o slider dá agora é o
+  desaprumo, e o padrão (−0,03, uns 5°) é só o bastante para a rampa não parecer
+  régua.
+- **O brilho soma luz, não mistura branco.** Ele era um `mix` para a última cor
+  da paleta; com a rampa vertical essa cor passou a ser a base, que é quase
+  branca, e branco misturado em azul fundo dá cinza — o halo acinzentado em volta
+  da marca. Agora ele entra em modo *screen* (nunca estoura de 1) e com a cor
+  mais viva da paleta, escolhida por croma × brilho: o elétrico ganha tanto do
+  quase-preto, que tem croma mas é escuro demais, quanto do papel, que é claro e
+  quase sem croma. O efeito continua ligado e na mesma dose; o que mudou é que
+  ele acende em vez de desbotar.
+- **O rodapé tem tinta própria.** Ele mora na última faixa, que numa rampa é a
+  ponta oposta do meio: com uma cor de texto só para a página inteira, ele sumiria
+  toda vez que a base clareasse. A cor dele sai da luminância da faixa onde ele
+  está (`--texto-pe`), enquanto o resto da página segue a do meio, que é onde a
+  marca pousa.
 
 - **O movimento do globo é circular por construção.** Com uma amplitude por eixo
   — 45° na rotação e 28° na inclinação, que era o par do gerador — um círculo do
@@ -166,13 +213,24 @@ onde está).
 - **A cor do texto troca de uma vez com a paleta**, sem transição: o fundo muda
   no quadro seguinte, e um texto atravessando meio segundo de cor intermediária
   chegaria atrasado — num quadro só (uma captura, um vídeo), chegaria errado.
-- **A chave do `localStorage` carrega a versão dos padrões** (`everblue-landing-5`).
+- **A chave do `localStorage` carrega a versão dos padrões** (`everblue-landing-6`).
   Mudou o padrão de fábrica, a chave muda junto: senão o valor salvo de ontem
   esconderia o padrão novo e ninguém veria a mudança.
 - **Sem WebGL a página continua de pé**: o `body` já carrega um gradiente CSS com
   as cores em vigor, e é ele que aparece.
 - **`prefers-reduced-motion`** derruba a velocidade do fundo nos padrões — quem
   quiser, sobe no painel.
+
+## Tipografia
+
+A fonte do site é a **Trust**, de Jeremy Mickel (MCKL) — a subfamília 1A, no
+token `--trust` no alto de `landing.css`. Os arquivos são licenciados e não moram
+no repositório: entram em `fontes/`, que está no `.gitignore`, e
+`fontes/LEIAME.md` diz quais são e com que nome. Sem eles a página continua de
+pé: os `@font-face` não carregam e a pilha de trás assume.
+
+O trial da MCKL não serve para web — o texto dele proíbe converter ou usar como
+webfont. O que a página precisa é da licença de webfont da família.
 
 ## Conteúdo
 

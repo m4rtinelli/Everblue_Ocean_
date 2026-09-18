@@ -9,11 +9,24 @@
   const { clamp, FOLLOW, poseCircular, makePainter, guias, R } = window.EBGlobe;
   const $ = (id) => document.getElementById(id);
 
+  /* ---------- cores da marca ----------
+     Os quatro valores da folha de marca, e nada fora deles. Toda paleta daqui
+     para baixo é uma composição destes quatro: o que muda de uma para outra é
+     onde cada um pousa e quanto espaço ocupa, nunca o matiz. Cor nova só entra
+     aqui, e aí entra em todas as paletas de uma vez. */
+  const MARCA = {
+    abismo: "#040B21", // o quase-preto azulado, o teto da rampa
+    marinho: "#0D2457", // o azul profundo
+    cobalto: "#024CCA", // o azul saturado, o meio da rampa e a cor da luz
+    pulso: "#487BE0", // o elétrico
+    papel: "#DCE2FF", // a ponta clara, embaixo
+  };
+
   /* ---------- paletas ----------
-     As cinco cores não são uma rampa: são uma composição, na ordem em que o
-     shader distribui as âncoras — alto-esquerda, direita, baixo-esquerda,
-     baixo-direita e o clarão do meio. "fundo" é a cor funda que faz o piso do
-     campo e a vinheta.
+     As cinco cores são uma rampa vertical: a mais funda no topo e a mais clara
+     na base, uma faixa por cor, na ordem em que estão aqui. É a ordem da folha
+     de marca, posta em pé. "fundo" é a cor funda que faz o piso do campo e a
+     vinheta, e por isso acompanha o topo.
 
      Uma paleta é ponto de partida, não estado: escolher uma copia as cores para
      o estado, e dali em diante cada cor é editável no painel. Tinta da marca,
@@ -22,33 +35,36 @@
   const PALETAS = {
     everblue: {
       nome: "Everblue",
-      // o clarão elétrico no meio, azul fundo em volta e o canto de baixo à
-      // esquerda quase preto — a foto de referência da marca
-      cores: ["#10286F", "#1B4AD8", "#01030F", "#0A1A5E", "#2C72FF"],
-      raios: [0.9, 0.95, 0.9, 0.95, 0.95],
-      fundo: "#01030F",
+      // a folha de marca lida de cima para baixo, sem tradução nenhuma: as cinco
+      // paradas na ordem e nas alturas em que ela as põe
+      cores: [MARCA.abismo, MARCA.marinho, MARCA.cobalto, MARCA.pulso, MARCA.papel],
+      raios: [0.6, 0.42, 0.42, 0.42, 0.55],
+      fundo: MARCA.abismo,
     },
     abismo: {
       nome: "Abismo",
-      cores: ["#1B3FA0", "#2E8BFF", "#071A4D", "#01050F", "#7FB0FF"],
-      raios: [0.95, 0.7, 1.1, 1.15, 0.6],
-      fundo: "#01050F",
+      // a mesma rampa segurada embaixo: o claro não chega a entrar
+      cores: [MARCA.abismo, MARCA.abismo, MARCA.marinho, MARCA.cobalto, MARCA.pulso],
+      raios: [0.6, 0.44, 0.42, 0.42, 0.55],
+      fundo: MARCA.abismo,
     },
     aurora: {
       nome: "Aurora",
-      cores: ["#5FE2E0", "#2E8BFF", "#1338C9", "#04123B", "#EAF8FF"],
-      raios: [0.8, 0.9, 0.95, 1.05, 0.62],
-      fundo: "#04123B",
+      // a rampa subida de uma parada: começa no marinho e termina no papel
+      cores: [MARCA.marinho, MARCA.cobalto, MARCA.pulso, MARCA.papel, MARCA.papel],
+      raios: [0.6, 0.42, 0.42, 0.42, 0.55],
+      fundo: MARCA.marinho,
     },
     papel: {
       nome: "Papel",
-      cores: ["#DCE9FA", "#C6DAF6", "#A8C4EE", "#8FB3EA", "#FFFFFF"],
-      raios: [1.0, 0.9, 0.95, 1.0, 0.75],
-      fundo: "#8FB3EA",
+      // para peça clara: o cobalto faz o teto e o resto é papel
+      cores: [MARCA.cobalto, MARCA.pulso, MARCA.papel, MARCA.papel, MARCA.papel],
+      raios: [0.6, 0.44, 0.42, 0.44, 0.55],
+      fundo: MARCA.cobalto,
     },
   };
-  // rotulos das ancoras, na mesma ordem das cores
-  const CORES = ["Alto · esq.", "Direita", "Baixo · esq.", "Baixo · dir.", "Centro"];
+  // rotulos das faixas, de cima para baixo — a mesma ordem das cores
+  const CORES = ["Topo", "Alta", "Meio", "Baixa", "Base"];
 
   /* Hex livre: aceita com ou sem #, e na forma de tres digitos. Devolve null no
      que nao for cor — serve ao campo digitado e ao estado salvo, que e arquivo
@@ -123,12 +139,13 @@
   ];
   const MOVID = { nenhum: 0, deriva: 1, orbita: 2, vaivem: 3, mare: 4 };
 
+  // a tinta da marca só pode ser cor da marca — por isso a lista é o MARCA
   const TINTAS = [
-    ["#0B1F4D", "Abismo"],
-    ["#1B3FA0", "Marinho"],
-    ["#2E8BFF", "Pulso"],
-    ["#BCD4F5", "Céu"],
-    ["#FFFFFF", "Papel"],
+    [MARCA.abismo, "Abismo"],
+    [MARCA.marinho, "Marinho"],
+    [MARCA.cobalto, "Cobalto"],
+    [MARCA.pulso, "Pulso"],
+    [MARCA.papel, "Papel"],
   ];
 
   /* ---------- estado ---------- */
@@ -156,7 +173,7 @@
       fx: {
         atrair: { on: true, v: 0.7 },
         repelir: { on: false, v: 0.5 },
-        redemoinho: { on: true, v: 0.45 },
+        redemoinho: { on: true, v: 0.2 },
         ondas: { on: true, v: 0.6 },
         brilho: { on: true, v: 0.5 },
         paralaxe: { on: true, v: 0.4 },
@@ -166,10 +183,14 @@
     // o que o fundo faz sozinho, sem ninguém no mouse
     mov: {
       padrao: "deriva",
-      vel: menosMovimento ? 0.2 : 1,
-      amp: 0.3,
-      giro: 0,
-      respiro: 0,
+      vel: menosMovimento ? 0.4 : 3,
+      amp: 0.21,
+      /* Inclinação fixa da composição, e não rotação: a rampa é vertical de
+         propósito, e um giro que anda levaria o topo escuro para o lado com o
+         tempo. Este valor é o desaprumo que tira a rampa do esquadro — pouco,
+         só o bastante para ela não parecer régua. */
+      giro: -0.03,
+      respiro: 1,
     },
     globo: {
       // a marca abre sozinha; o logotipo é opcional e entra pelo painel
@@ -197,7 +218,7 @@
   /* A chave carrega a versão dos padrões: mudou o padrão de fábrica, a chave
      muda junto e o que estava salvo é ignorado em vez de esconder o padrão novo
      atrás de um valor antigo. */
-  const CHAVE = "everblue-landing-5";
+  const CHAVE = "everblue-landing-8";
   const clone = (o) => JSON.parse(JSON.stringify(o));
 
   /* Mescla o que estava salvo por cima do padrão, campo a campo: um arquivo
@@ -310,7 +331,7 @@
        seriam dois jeitos de desenhar o logo errado. */
     pontaReta: true,
     seeThrough: false,
-    ink: "#0B1F4D",
+    ink: MARCA.abismo,
   };
 
   // estado efetivo do fundo, reaproveitado quadro a quadro para não gerar lixo
@@ -446,7 +467,6 @@
   const anim = { cY: 0, cX: 0, tY: 0, tX: 0 };
   let tempo = 0, // relógio bruto: grão e ondas
     campo = 0, // relógio do campo, já com a velocidade integrada
-    campoGiro = 0, // ângulo do campo, idem
     ultimo = performance.now(),
     raf = 0,
     fps = 60,
@@ -459,7 +479,6 @@
     ultimo = agora;
     tempo += dt;
     campo += dt * S.mov.vel;
-    campoGiro += dt * S.mov.giro * 0.5;
     fps += (1 / Math.max(dt, 1e-4) - fps) * 0.06;
 
     passoPonteiro(dt);
@@ -778,7 +797,7 @@
       stGrad,
       tempo,
       campo,
-      campoGiro,
+      S.mov.giro * Math.PI, // ângulo fixo, não integrado: o giro não anda
       [pt.x, pt.y],
       [pt.vx, pt.vy],
       (performance.now() - pt.pulso) / 1000,
@@ -1012,21 +1031,29 @@
 
   /* Tema derivado das cores, e nao guardado junto com elas: assim uma paleta
      montada a mao no painel continua legivel sem exigir que alguem escolha a cor
-     do texto tambem. O peso e do meio da tela, onde a marca pousa — o clarao
-     central conta mais que os cantos. */
+     do texto tambem. O peso e da faixa do meio, que e onde a marca pousa: numa
+     rampa vertical as duas pontas sao extremas de proposito, e deixar o topo
+     decidir daria texto claro em cima de uma base clara. */
   function aplicarTema() {
     const c = S.cores;
     const volta =
-      (lumin(c.anc[0]) + lumin(c.anc[1]) + lumin(c.anc[2]) + lumin(c.anc[3])) / 4;
-    const clara = 0.6 * lumin(c.anc[4]) + 0.4 * volta >= 0.5;
+      (lumin(c.anc[0]) + lumin(c.anc[1]) + lumin(c.anc[3]) + lumin(c.anc[4])) / 4;
+    const clara = 0.6 * lumin(c.anc[2]) + 0.4 * volta >= 0.5;
     const r = document.documentElement.style;
-    r.setProperty("--texto", clara ? "#0B1F4D" : "#E9EFFB");
+    r.setProperty("--texto", clara ? MARCA.abismo : MARCA.papel);
+    /* O rodapé pousa na última faixa, que numa rampa é justamente a ponta oposta
+       do meio: com uma cor de texto só para a página inteira, ele sumiria toda
+       vez que a base clareasse. Ele tem a sua, tirada da faixa onde ele mora. */
+    r.setProperty(
+      "--texto-pe",
+      lumin(c.anc[4]) >= 0.5 ? MARCA.abismo : MARCA.papel,
+    );
     r.setProperty("--veu", clara ? "0.2" : "0");
-    r.setProperty("--css-a", c.anc[0]); // clarao de cima
-    r.setProperty("--css-b", c.anc[2]); // cor de forca
-    r.setProperty("--css-c", c.fundo);
+    r.setProperty("--css-a", c.anc[0]); // topo da rampa
+    r.setProperty("--css-b", c.anc[2]); // faixa do meio
+    r.setProperty("--css-c", c.anc[4]); // base da rampa
     G.ink =
-      S.globo.tinta === "auto" ? (clara ? "#0B1F4D" : "#DCEBFF") : S.globo.tinta;
+      S.globo.tinta === "auto" ? (clara ? MARCA.abismo : MARCA.papel) : S.globo.tinta;
     r.setProperty("--tinta", G.ink); // o logotipo pinta por currentColor
     document.body.classList.toggle("escuro", !clara);
   }
@@ -1116,7 +1143,7 @@
     });
     hint(
       sc,
-      "As cinco primeiras são a composição do campo, cada uma na posição que o nome diz; a do <b>centro</b> é o clarão que passa atrás da marca. Mexer numa cor solta a paleta — os chips voltam a valer como ponto de partida. A tinta da marca e a cor do texto acompanham sozinhas, pela luminância do que você escolher.",
+      "As cinco primeiras são a rampa do campo, de cima para baixo: <b>topo</b> é a faixa mais alta da tela e <b>base</b> a mais baixa. A do <b>meio</b> é a que passa atrás da marca. Mexer numa cor solta a paleta — os chips voltam a valer como ponto de partida. A tinta da marca e a cor do texto acompanham sozinhas, pela luminância do que você escolher.",
     );
 
     // ---- movimento do fundo
@@ -1136,7 +1163,7 @@
       min: 0,
       max: 0.9,
       step: 0.01,
-      dica: "O quanto cada âncora se afasta da própria casa. Em 0 a composição fica presa, mas giro e respiro continuam.",
+      dica: "O quanto cada faixa se afasta da própria altura. Em 0 a rampa fica presa, mas o respiro continua.",
     });
     faixa(sm, {
       nome: "Giro",
@@ -1144,7 +1171,7 @@
       min: -1,
       max: 1,
       step: 0.01,
-      dica: "Rotação lenta da composição inteira. Negativo gira para o outro lado.",
+      dica: "Inclinação da rampa inteira — um ângulo fixo, que não anda com o tempo. Negativo deita para o outro lado; 1 é meia volta.",
     });
     faixa(sm, {
       nome: "Respiro",
@@ -1157,7 +1184,7 @@
     });
     hint(
       sm,
-      "É o que o fundo faz sozinho, sem ninguém no mouse — o cursor entra por cima disso. <b>Velocidade</b> manda no relógio; <b>amplitude</b>, no caminho. Zerar as duas deixa o fundo parado como uma arte fixa.",
+      "É o que o fundo faz sozinho, sem ninguém no mouse — o cursor entra por cima disso. <b>Velocidade</b> manda no relógio; <b>amplitude</b>, no caminho. O <b>giro</b> é o único que não se move: é a inclinação da rampa, e fica onde for posto. Zerar velocidade e amplitude deixa o fundo parado como uma arte fixa.",
     );
 
     // ---- gradiente

@@ -8,48 +8,53 @@
    folha de estilo. */
 
 :root {
-  /* paleta da marca */
-  --abismo: #0b1f4d;
-  --marinho: #1b3fa0;
-  --pulso: #2e8bff;
-  --ceu: #bcd4f5;
+  /* paleta da marca — os mesmos quatro valores do MARCA em landing.js */
+  --abismo: #040b21;
+  --marinho: #0d2457;
+  --cobalto: #024cca;
+  --pulso: #487be0;
+  --papel: #dce2ff;
 
   /* escritas pelo JS a cada troca de paleta */
-  --texto: #0b1f4d;
-  --tinta: #0b1f4d; /* traço do globo — o logotipo herda dela */
-  --veu: 0.34;
-  --css-a: #9dbeff;
-  --css-b: #1226c8;
-  --css-c: #061136;
+  --texto: var(--papel);
+  --tinta: var(--papel); /* traço do globo — o logotipo herda dela */
+  --veu: 0;
+  --css-a: #040b21;
+  --css-b: #0d2457;
+  --css-c: #dce2ff;
 
   --globo: 27vmin;
 
   --hud-bg: rgba(255, 255, 255, 0.62);
   --hud-borda: rgba(255, 255, 255, 0.55);
-  --hud-texto: #0b1f4d;
-  --hud-mut: rgba(11, 31, 77, 0.55);
-  --hud-linha: rgba(11, 31, 77, 0.1);
-  --hud-trilho: rgba(11, 31, 77, 0.14);
+  --hud-texto: var(--abismo);
+  --hud-mut: rgba(4, 11, 33, 0.55);
+  --hud-linha: rgba(4, 11, 33, 0.1);
+  --hud-trilho: rgba(4, 11, 33, 0.14);
   --hud-chip: rgba(255, 255, 255, 0.5);
-  --hud-sombra: 0 2px 8px rgba(4, 14, 40, 0.08), 0 24px 60px rgba(4, 14, 40, 0.22);
+  --hud-sombra: 0 2px 8px rgba(4, 11, 33, 0.08), 0 24px 60px rgba(4, 11, 33, 0.22);
 
   --mono: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
-  /* Geométrica de caixa baixa, no espírito do logotipo. Trocar por Linear
-     Grotesk ou ABC Diatype quando a licença estiver resolvida — há um @font-face
-     pronto e comentado no fim deste arquivo. */
-  --sans: "Poppins", "Montserrat", "Futura", "Avenir Next",
+  /* A tipografia da marca é a Trust, da MCKL. Trocar de subfamília (1A…3C, do
+     sans ao serifado) é mudar esta linha e os nomes dos arquivos lá embaixo — o
+     resto da folha pede sempre --sans. A pilha atrás dela não é decoração: os
+     arquivos da Trust são licenciados e moram em fontes/, que não vai para o
+     repositório, então quem clona o projeto sem eles vê a pilha e não uma página
+     quebrada. */
+  --trust: "Trust 1A";
+  --sans: var(--trust), "Poppins", "Montserrat", "Futura", "Avenir Next",
     "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
 /* painel escuro quando a paleta escurece o fundo */
 body.escuro {
-  --hud-bg: rgba(9, 20, 46, 0.6);
-  --hud-borda: rgba(160, 190, 255, 0.16);
-  --hud-texto: #e9effb;
-  --hud-mut: rgba(233, 239, 251, 0.55);
-  --hud-linha: rgba(160, 190, 255, 0.14);
-  --hud-trilho: rgba(160, 190, 255, 0.2);
-  --hud-chip: rgba(160, 190, 255, 0.1);
+  --hud-bg: rgba(13, 36, 87, 0.6);
+  --hud-borda: rgba(220, 226, 255, 0.16);
+  --hud-texto: var(--papel);
+  --hud-mut: rgba(220, 226, 255, 0.55);
+  --hud-linha: rgba(220, 226, 255, 0.14);
+  --hud-trilho: rgba(220, 226, 255, 0.2);
+  --hud-chip: rgba(220, 226, 255, 0.1);
   --hud-sombra: 0 2px 8px rgba(0, 0, 0, 0.3), 0 24px 60px rgba(0, 0, 0, 0.5);
 }
 
@@ -69,9 +74,14 @@ body {
   overflow: hidden; /* a página é uma tela só; o painel rola por dentro */
   /* fundo de reserva: é o que aparece se o WebGL não subir, e é o que pinta o
      primeiro quadro antes do shader compilar */
-  background: radial-gradient(120% 100% at 25% 20%, var(--css-a) 0%, transparent 55%),
-    radial-gradient(100% 110% at 80% 30%, var(--css-b) 0%, transparent 60%),
-    linear-gradient(160deg, var(--css-b) 0%, var(--css-c) 100%);
+  /* o mesmo desenho do shader em CSS: rampa vertical, funda em cima e clara
+     embaixo — é o que se vê enquanto o WebGL sobe, e o que fica se ele falhar */
+  background: linear-gradient(
+    180deg,
+    var(--css-a) 0%,
+    var(--css-b) 50%,
+    var(--css-c) 100%
+  );
 }
 
 #bg {
@@ -190,7 +200,8 @@ body.escuro .rodape {
   align-items: baseline;
   justify-content: space-between;
   gap: clamp(10px, 3vw, 40px);
-  color: var(--texto);
+  /* o rodapé mora na base da rampa e tem tinta própria — ver aplicarTema() */
+  color: var(--texto-pe, var(--texto));
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.04em;
@@ -790,15 +801,46 @@ input[type="color"]::-moz-color-swatch {
 }
 
 /* ---------- fontes da marca ----------
-   As oficiais moram fora desta pasta e são licença de trial. Para provar o
-   lockup com a tipografia certa, copie o arquivo para cá e tire o comentário —
-   e não publique assim sem a licença resolvida.
+   Trust, de Jeremy Mickel (MCKL). Os arquivos são licenciados e não moram no
+   repositório: caem em fontes/ a partir do kit de webfont da compra — ver
+   fontes/LEIAME.md. Enquanto não estiverem lá, estes @font-face simplesmente não
+   carregam e a pilha de --sans assume; a página não quebra nem fica esperando.
 
+   font-display: swap é de propósito. O texto da página é pouco e o desenho é o
+   fundo: melhor ler na fonte de trás por um quadro do que ficar com buraco.
+
+   Só três pesos, que são os três que a folha usa (400, 500 e 600 → Bold). Pôr os
+   oito seria mandar o visitante baixar oito arquivos para usar três. */
 @font-face {
-  font-family: "Everblue Sans";
-  src: url("LinearGrotesk-Medium.woff2") format("woff2");
-  font-weight: 500;
+  font-family: "Trust 1A";
+  src: url("fontes/Trust1A-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
   font-display: swap;
 }
-:root { --sans: "Everblue Sans", system-ui, sans-serif; }
+@font-face {
+  font-family: "Trust 1A";
+  src: url("fontes/Trust1A-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Trust 1A";
+  src: url("fontes/Trust1A-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Quem comprou o pacote com as variáveis troca os três de cima por este — um
+   arquivo só, todos os pesos:
+
+@font-face {
+  font-family: "Trust 1A";
+  src: url("fontes/Trust1A-Variable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 */

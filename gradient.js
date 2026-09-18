@@ -23,7 +23,7 @@ uniform float uField;     // tempo do campo, já integrado com a velocidade
 /* movimento contínuo do fundo, o que ele faz sozinho sem ninguém no mouse */
 uniform float uMov;       // padrão do caminho de cada âncora
 uniform float uAmp;       // o quanto ela se afasta da própria casa
-uniform float uGiro;      // ângulo do campo inteiro, já integrado
+uniform float uGiro;      // inclinação fixa da rampa, em radianos
 uniform float uResp;      // respiro: pulso de escala do campo
 
 uniform float uInfl;      // influência mestra do cursor
@@ -33,6 +33,7 @@ uniform float uScale, uWarp, uContrast, uGrain, uVig;
 uniform float uAttract, uRepel, uSwirl, uRipple, uGlow, uParallax, uTurb;
 
 uniform vec3 uC0, uC1, uC2, uC3, uC4;
+uniform vec3 uLuz;       // a cor da luz do brilho — a mais cromática da paleta
 uniform vec3 uFundo;      // cor funda da paleta: piso do campo e vinheta
 uniform float uR0, uR1, uR2, uR3, uR4;
 
@@ -87,8 +88,19 @@ vec2 anc(vec2 home, float ph, float sp, float t){
   else d = vec2(sin(a * 0.7), cos(a * 0.7)) * (0.45 + 0.55 * sin(t * 0.4 + ph)); // maré
   return home + d * uAmp;
 }
+/* Peso da âncora — achatado de propósito. A composição é uma rampa vertical, e
+   com distância isotrópica cada cor viraria um círculo: a tela ganharia cinco
+   bolhas e os cantos cairiam todos no piso. Contando a distância horizontal por
+   uma fração, cada âncora se espalha de lado e fica curta na vertical, e o que
+   sai é faixa, que é o que a rampa pede.
+
+   A escala vem de fora (gEsc, montada no main) porque ela também desconta a
+   proporção da tela: o raio é lido em fração de meia-tela, e não em unidades do
+   quadro. Sem isso, a mesma paleta que cobre um monitor deitado deixaria buraco
+   entre as faixas num retrato, onde a altura é quase o dobro. */
+vec2 gEsc;
 float peso(vec2 f, vec2 a, float r){
-  vec2 d = f - a;
+  vec2 d = (f - a) * gEsc;
   return exp(-dot(d, d) / (r * r));
 }
 vec2 rot(vec2 v, float a){
@@ -143,9 +155,11 @@ void main(){
   vec2 f = q / uScale;
 
   /* Giro e respiro valem para a composição inteira, e não para o caminho de cada
-     âncora: giram e inflam o campo como quem move a câmera, não como quem
-     empurra as manchas. O ângulo chega integrado de fora pelo mesmo motivo do
-     tempo — mexer no slider muda o passo daqui para frente, não a fase toda. */
+     âncora: inclinam e inflam o campo como quem move a câmera, não como quem
+     empurra as faixas. O giro é um ângulo parado, não uma velocidade: numa rampa
+     vertical, rotação que anda levaria o topo escuro para o lado e, mais adiante,
+     para baixo — o desenho da marca deixaria de ser o desenho da marca. O que o
+     slider dá é o desaprumo, e ele fica onde for posto. */
   f = rot(f, uGiro);
   f /= 1.0 + uResp * 0.20 * sin(t * 0.6);
 
@@ -158,16 +172,24 @@ void main(){
   ) - 0.5;
   f += warp * w;
 
-  /* As âncoras moram numa composição fixa — clara em cima à esquerda, elétrica
-     embaixo à esquerda, funda embaixo à direita, clarão no meio — e a casa de
-     cada uma é esticada pela proporção da tela. Sem isso, numa tela larga elas
-     ficam todas no terço do meio e as laterais viram cor chapada. */
+  /* As âncoras moram numa rampa vertical: a mais funda no topo e a mais clara na
+     base, uma faixa por âncora, na mesma ordem em que o painel as mostra. As
+     alturas são as paradas da folha de marca — 10%, 27%, 52%, 75% e 100% a
+     contar do topo —, e não cinco passos iguais: é o que faz o escuro segurar o
+     terço de cima e o claro só encostar na borda de baixo. O
+     desencontro pequeno no eixo x é o que impede a rampa de virar listra de
+     régua — a faixa entra torta e o warp faz o resto.
+
+     A casa de cada uma é esticada pela proporção da tela: numa tela alta as
+     faixas precisam se afastar para cobrir o quadro, senão sobra cor chapada em
+     cima e embaixo. */
   vec2 esp = vec2(max(asp, 1.0), max(1.0 / asp, 1.0));
-  vec2 a0 = anc(vec2(-0.62,  0.58) * esp, 0.0, 0.21 , t);
-  vec2 a1 = anc(vec2( 0.74,  0.30) * esp, 1.7, 0.17 , t);
-  vec2 a2 = anc(vec2(-0.80, -0.52) * esp, 3.1, 0.245, t);
-  vec2 a3 = anc(vec2( 0.66, -0.74) * esp, 4.6, 0.19 , t);
-  vec2 a4 = anc(vec2( 0.02,  0.06) * esp, 2.2, 0.275, t);
+  gEsc = vec2(0.26 / esp.x, 1.0 / esp.y); // 0.26: o quanto a faixa é mais larga que alta
+  vec2 a0 = anc(vec2(-0.16,  0.86) * esp, 0.0, 0.21 , t);
+  vec2 a1 = anc(vec2( 0.20,  0.46) * esp, 1.7, 0.17 , t);
+  vec2 a2 = anc(vec2(-0.12, -0.02) * esp, 3.1, 0.245, t);
+  vec2 a3 = anc(vec2( 0.16, -0.50) * esp, 4.6, 0.19 , t);
+  vec2 a4 = anc(vec2(-0.06, -1.02) * esp, 2.2, 0.275, t);
 
   float w0 = peso(f, a0, uR0);
   float w1 = peso(f, a1, uR1);
@@ -187,9 +209,16 @@ void main(){
 
   vec3 col = acc / sum;
 
-  // brilho: o único efeito que mexe na cor e não na coordenada — levanta a
-  // exposição em volta do cursor, como se ele fosse uma fonte de luz
-  col = mix(col, lin(uC4), fall * uGlow * 0.55 * uInfl);
+  /* Brilho: o único efeito que mexe na cor e não na coordenada — levanta a
+     exposição em volta do cursor, como se ele fosse uma fonte de luz.
+
+     Ele soma luz em vez de puxar a cor para a ponta clara da paleta. Puxar
+     desbota: a base da rampa é quase branca, e branco misturado em azul fundo dá
+     cinza, não luz — era o halo acinzentado em volta da marca. A soma é em modo
+     "screen", que nunca estoura de 1, e a cor que entra é a mais cromática da
+     paleta (uLuz), então o que aparece é azul mais aceso e não véu. */
+  vec3 luz = lin(uLuz) * (fall * uGlow * 0.5 * uInfl);
+  col = 1.0 - (1.0 - col) * (1.0 - clamp(luz, 0.0, 1.0));
 
   col = srgb(col);
 
@@ -220,6 +249,25 @@ void main(){
       return null;
     }
     return s;
+  }
+
+  /* A luz do brilho não é uma cor à parte na paleta: é a mais viva das que já
+     estão lá. Pontuação = croma × brilho, para que o azul elétrico ganhe tanto do
+     quase-preto (croma alto, escuro demais) quanto do papel (claro, mas quase
+     sem croma). Numa paleta cinza qualquer uma serve, e ganha a mais clara. */
+  function corLuz(cores) {
+    let melhor = cores[0],
+      nota = -1;
+    for (const c of cores) {
+      const [r, g, b] = hexRGB(c);
+      const alto = Math.max(r, g, b);
+      const n = (alto - Math.min(r, g, b)) * alto + alto * 0.001;
+      if (n > nota) {
+        nota = n;
+        melhor = c;
+      }
+    }
+    return melhor;
   }
 
   const hexRGB = (hex) => {
@@ -274,7 +322,7 @@ void main(){
       "uMov", "uAmp", "uGiro", "uResp",
       "uInfl", "uReach", "uScale", "uWarp", "uContrast", "uGrain", "uVig",
       "uAttract", "uRepel", "uSwirl", "uRipple", "uGlow", "uParallax", "uTurb",
-      "uC0", "uC1", "uC2", "uC3", "uC4", "uFundo",
+      "uC0", "uC1", "uC2", "uC3", "uC4", "uFundo", "uLuz",
       "uR0", "uR1", "uR2", "uR3", "uR4",
     ];
     for (const n of nomes) U[n] = gl.getUniformLocation(prog, n);
@@ -338,6 +386,7 @@ void main(){
       gl.uniform3fv(U.uC3, hexRGB(c[3]));
       gl.uniform3fv(U.uC4, hexRGB(c[4]));
       gl.uniform3fv(U.uFundo, hexRGB(st.fundo));
+      gl.uniform3fv(U.uLuz, hexRGB(corLuz(c)));
       gl.uniform1f(U.uR0, r[0]);
       gl.uniform1f(U.uR1, r[1]);
       gl.uniform1f(U.uR2, r[2]);
