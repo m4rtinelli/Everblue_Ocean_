@@ -14,14 +14,15 @@
   --cobalto: #024cca;
   --pulso: #487be0;
   --papel: #dce2ff;
+  --creme: #fcfaf7; /* a tinta clara da marca e do texto — fora da rampa */
 
   /* escritas pelo JS a cada troca de paleta */
-  --texto: var(--papel);
-  --tinta: var(--papel); /* traço do globo — o logotipo herda dela */
+  --texto: var(--creme);
+  --tinta: var(--creme); /* traço do globo — o logotipo herda dela */
   --veu: 0;
-  --css-a: #040b21;
-  --css-b: #0d2457;
-  --css-c: #dce2ff;
+  --css-a: #dce2ff;
+  --css-b: #024cca;
+  --css-c: #040b21;
 
   --globo: 27vmin;
 
@@ -49,12 +50,12 @@
 /* painel escuro quando a paleta escurece o fundo */
 body.escuro {
   --hud-bg: rgba(13, 36, 87, 0.6);
-  --hud-borda: rgba(220, 226, 255, 0.16);
-  --hud-texto: var(--papel);
-  --hud-mut: rgba(220, 226, 255, 0.55);
-  --hud-linha: rgba(220, 226, 255, 0.14);
-  --hud-trilho: rgba(220, 226, 255, 0.2);
-  --hud-chip: rgba(220, 226, 255, 0.1);
+  --hud-borda: rgba(252, 250, 247, 0.16);
+  --hud-texto: var(--creme);
+  --hud-mut: rgba(252, 250, 247, 0.55);
+  --hud-linha: rgba(252, 250, 247, 0.14);
+  --hud-trilho: rgba(252, 250, 247, 0.2);
+  --hud-chip: rgba(252, 250, 247, 0.1);
   --hud-sombra: 0 2px 8px rgba(0, 0, 0, 0.3), 0 24px 60px rgba(0, 0, 0, 0.5);
 }
 
@@ -74,7 +75,7 @@ body {
   overflow: hidden; /* a página é uma tela só; o painel rola por dentro */
   /* fundo de reserva: é o que aparece se o WebGL não subir, e é o que pinta o
      primeiro quadro antes do shader compilar */
-  /* o mesmo desenho do shader em CSS: rampa vertical, funda em cima e clara
+  /* o mesmo desenho do shader em CSS: rampa vertical, clara em cima e funda
      embaixo — é o que se vê enquanto o WebGL sobe, e o que fica se ele falhar */
   background: linear-gradient(
     180deg,
@@ -160,7 +161,8 @@ body.escuro .rodape {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--tinta);
+  /* o cabeçalho mora na faixa do topo e tem tinta própria — ver aplicarTema() */
+  color: var(--texto-topo, var(--tinta));
   opacity: 0.9;
   transition: opacity 0.25s;
 }
@@ -182,7 +184,7 @@ body.escuro .rodape {
   gap: clamp(14px, 2.2vw, 30px);
 }
 .topo nav a {
-  color: var(--texto);
+  color: var(--texto-topo, var(--texto));
   text-decoration: none;
   font-size: 13px;
   letter-spacing: 0.02em;

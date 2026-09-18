@@ -19,14 +19,20 @@
     marinho: "#0D2457", // o azul profundo
     cobalto: "#024CCA", // o azul saturado, o meio da rampa e a cor da luz
     pulso: "#487BE0", // o elétrico
-    papel: "#DCE2FF", // a ponta clara, embaixo
+    papel: "#DCE2FF", // a ponta clara da rampa
+    /* A tinta clara não é o papel: é um branco quente, de fora da rampa, para a
+       marca e o texto não se confundirem com a faixa clara do fundo — sobre azul
+       o papel puxa para o azul e some; o creme se destaca dele. */
+    creme: "#FCFAF7",
   };
 
   /* ---------- paletas ----------
-     As cinco cores são uma rampa vertical: a mais funda no topo e a mais clara
-     na base, uma faixa por cor, na ordem em que estão aqui. É a ordem da folha
-     de marca, posta em pé. "fundo" é a cor funda que faz o piso do campo e a
-     vinheta, e por isso acompanha o topo.
+     As cinco cores são uma rampa vertical: a mais clara no topo e a mais funda
+     na base, uma faixa por cor, na ordem em que estão aqui — a ordem da folha de
+     marca, lida de cima para baixo. A faixa do topo é curta de propósito (ver o
+     raio dela): o claro só encosta na borda de cima, e a tela é do azul. "fundo"
+     é a cor funda que faz o piso do campo e a vinheta, e por isso acompanha a
+     base.
 
      Uma paleta é ponto de partida, não estado: escolher uma copia as cores para
      o estado, e dali em diante cada cor é editável no painel. Tinta da marca,
@@ -35,31 +41,31 @@
   const PALETAS = {
     everblue: {
       nome: "Everblue",
-      // a folha de marca lida de cima para baixo, sem tradução nenhuma: as cinco
-      // paradas na ordem e nas alturas em que ela as põe
-      cores: [MARCA.abismo, MARCA.marinho, MARCA.cobalto, MARCA.pulso, MARCA.papel],
-      raios: [0.6, 0.42, 0.42, 0.42, 0.55],
+      // a folha de marca tal como está: papel em cima, abismo embaixo. O raio do
+      // papel é o menor de todos — é uma orla, não uma faixa
+      cores: [MARCA.papel, MARCA.pulso, MARCA.cobalto, MARCA.marinho, MARCA.abismo],
+      raios: [0.3, 0.42, 0.42, 0.44, 0.62],
       fundo: MARCA.abismo,
     },
     abismo: {
       nome: "Abismo",
       // a mesma rampa segurada embaixo: o claro não chega a entrar
-      cores: [MARCA.abismo, MARCA.abismo, MARCA.marinho, MARCA.cobalto, MARCA.pulso],
-      raios: [0.6, 0.44, 0.42, 0.42, 0.55],
+      cores: [MARCA.pulso, MARCA.cobalto, MARCA.marinho, MARCA.abismo, MARCA.abismo],
+      raios: [0.34, 0.42, 0.42, 0.44, 0.62],
       fundo: MARCA.abismo,
     },
     aurora: {
       nome: "Aurora",
-      // a rampa subida de uma parada: começa no marinho e termina no papel
-      cores: [MARCA.marinho, MARCA.cobalto, MARCA.pulso, MARCA.papel, MARCA.papel],
-      raios: [0.6, 0.42, 0.42, 0.42, 0.55],
+      // a rampa subida de uma parada: começa no papel e termina no marinho
+      cores: [MARCA.papel, MARCA.papel, MARCA.pulso, MARCA.cobalto, MARCA.marinho],
+      raios: [0.34, 0.42, 0.42, 0.44, 0.62],
       fundo: MARCA.marinho,
     },
     papel: {
       nome: "Papel",
-      // para peça clara: o cobalto faz o teto e o resto é papel
-      cores: [MARCA.cobalto, MARCA.pulso, MARCA.papel, MARCA.papel, MARCA.papel],
-      raios: [0.6, 0.44, 0.42, 0.44, 0.55],
+      // para peça clara: papel na maior parte e o cobalto no chão
+      cores: [MARCA.papel, MARCA.papel, MARCA.papel, MARCA.pulso, MARCA.cobalto],
+      raios: [0.34, 0.44, 0.42, 0.44, 0.62],
       fundo: MARCA.cobalto,
     },
   };
@@ -146,6 +152,7 @@
     [MARCA.cobalto, "Cobalto"],
     [MARCA.pulso, "Pulso"],
     [MARCA.papel, "Papel"],
+    [MARCA.creme, "Creme"],
   ];
 
   /* ---------- estado ---------- */
@@ -164,7 +171,7 @@
       infl: 1,
       reach: 0.8,
       suav: 0.12, // inércia do ponteiro no fundo
-      scale: 1,
+      scale: 1.32,
       warp: 0.42,
       contrast: 1.08,
       grain: 0.28,
@@ -218,7 +225,7 @@
   /* A chave carrega a versão dos padrões: mudou o padrão de fábrica, a chave
      muda junto e o que estava salvo é ignorado em vez de esconder o padrão novo
      atrás de um valor antigo. */
-  const CHAVE = "everblue-landing-8";
+  const CHAVE = "everblue-landing-10";
   const clone = (o) => JSON.parse(JSON.stringify(o));
 
   /* Mescla o que estava salvo por cima do padrão, campo a campo: um arquivo
@@ -1044,28 +1051,25 @@
   /* Tema derivado das cores, e nao guardado junto com elas: assim uma paleta
      montada a mao no painel continua legivel sem exigir que alguem escolha a cor
      do texto tambem. O peso e da faixa do meio, que e onde a marca pousa: numa
-     rampa vertical as duas pontas sao extremas de proposito, e deixar o topo
-     decidir daria texto claro em cima de uma base clara. */
+     rampa vertical as duas pontas sao extremas de proposito, e deixar uma delas
+     decidir daria texto claro em cima da outra. Cabecalho e rodape moram nas
+     pontas, e por isso cada um tem a sua tinta, tirada da faixa onde esta. */
   function aplicarTema() {
     const c = S.cores;
     const volta =
       (lumin(c.anc[0]) + lumin(c.anc[1]) + lumin(c.anc[3]) + lumin(c.anc[4])) / 4;
     const clara = 0.6 * lumin(c.anc[2]) + 0.4 * volta >= 0.5;
     const r = document.documentElement.style;
-    r.setProperty("--texto", clara ? MARCA.abismo : MARCA.papel);
-    /* O rodapé pousa na última faixa, que numa rampa é justamente a ponta oposta
-       do meio: com uma cor de texto só para a página inteira, ele sumiria toda
-       vez que a base clareasse. Ele tem a sua, tirada da faixa onde ele mora. */
-    r.setProperty(
-      "--texto-pe",
-      lumin(c.anc[4]) >= 0.5 ? MARCA.abismo : MARCA.papel,
-    );
+    r.setProperty("--texto", clara ? MARCA.abismo : MARCA.creme);
+    const tintaDe = (hex) => (lumin(hex) >= 0.5 ? MARCA.abismo : MARCA.creme);
+    r.setProperty("--texto-topo", tintaDe(c.anc[0]));
+    r.setProperty("--texto-pe", tintaDe(c.anc[4]));
     r.setProperty("--veu", clara ? "0.2" : "0");
     r.setProperty("--css-a", c.anc[0]); // topo da rampa
     r.setProperty("--css-b", c.anc[2]); // faixa do meio
     r.setProperty("--css-c", c.anc[4]); // base da rampa
     G.ink =
-      S.globo.tinta === "auto" ? (clara ? MARCA.abismo : MARCA.papel) : S.globo.tinta;
+      S.globo.tinta === "auto" ? (clara ? MARCA.abismo : MARCA.creme) : S.globo.tinta;
     r.setProperty("--tinta", G.ink); // o logotipo pinta por currentColor
     document.body.classList.toggle("escuro", !clara);
   }
@@ -1207,7 +1211,7 @@
       min: 0.4,
       max: 2.5,
       step: 0.01,
-      dica: "Tamanho das manchas de cor.",
+      dica: "Tamanho das faixas de cor: acima de 1 elas se alargam e o degradê fica mais longo.",
     });
     faixa(s3, {
       nome: "Deformação",

@@ -172,11 +172,11 @@ void main(){
   ) - 0.5;
   f += warp * w;
 
-  /* As âncoras moram numa rampa vertical: a mais funda no topo e a mais clara na
-     base, uma faixa por âncora, na mesma ordem em que o painel as mostra. As
-     alturas são as paradas da folha de marca — 10%, 27%, 52%, 75% e 100% a
-     contar do topo —, e não cinco passos iguais: é o que faz o escuro segurar o
-     terço de cima e o claro só encostar na borda de baixo. O
+  /* As âncoras moram numa rampa vertical: a mais clara no topo e a mais funda
+     na base, uma faixa por âncora, na mesma ordem em que o painel as mostra. As
+     alturas são as paradas da folha de marca — 0%, 25%, 48%, 73% e 90% a contar
+     do topo —, e não cinco passos iguais: o claro fica acima da borda de cima,
+     onde só a orla dele entra na tela, e o escuro segura o terço de baixo. O
      desencontro pequeno no eixo x é o que impede a rampa de virar listra de
      régua — a faixa entra torta e o warp faz o resto.
 
@@ -185,11 +185,11 @@ void main(){
      cima e embaixo. */
   vec2 esp = vec2(max(asp, 1.0), max(1.0 / asp, 1.0));
   gEsc = vec2(0.26 / esp.x, 1.0 / esp.y); // 0.26: o quanto a faixa é mais larga que alta
-  vec2 a0 = anc(vec2(-0.16,  0.86) * esp, 0.0, 0.21 , t);
-  vec2 a1 = anc(vec2( 0.20,  0.46) * esp, 1.7, 0.17 , t);
-  vec2 a2 = anc(vec2(-0.12, -0.02) * esp, 3.1, 0.245, t);
-  vec2 a3 = anc(vec2( 0.16, -0.50) * esp, 4.6, 0.19 , t);
-  vec2 a4 = anc(vec2(-0.06, -1.02) * esp, 2.2, 0.275, t);
+  vec2 a0 = anc(vec2(-0.16,  1.12) * esp, 0.0, 0.21 , t);
+  vec2 a1 = anc(vec2( 0.20,  0.50) * esp, 1.7, 0.17 , t);
+  vec2 a2 = anc(vec2(-0.12,  0.02) * esp, 3.1, 0.245, t);
+  vec2 a3 = anc(vec2( 0.16, -0.46) * esp, 4.6, 0.19 , t);
+  vec2 a4 = anc(vec2(-0.06, -0.88) * esp, 2.2, 0.275, t);
 
   float w0 = peso(f, a0, uR0);
   float w1 = peso(f, a1, uR1);

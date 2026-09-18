@@ -110,18 +110,22 @@ onde está).
 - **O gradiente só conhece cinco cores.** `#040B21` (abismo), `#0D2457`
   (marinho), `#024CCA` (cobalto), `#487BE0` (pulso) e `#DCE2FF` (papel) estão
   numa tabela só, o `MARCA` no alto de `landing.js`, e as mesmas cinco são tokens
-  em `landing.css`. As quatro paletas não são quatro esquemas de cor: são quatro
+  em `landing.css`. Há um sexto valor lá, `#FCFAF7` (creme), que não entra na
+  rampa: é a tinta clara da marca e do texto. Sobre azul, o papel puxa para o
+  azul e some; o creme, por ser quente, se destaca dele. As quatro paletas não são quatro esquemas de cor: são quatro
   composições destes mesmos valores — o que muda de uma para outra é em que
   altura da rampa cada um entra e quanto espaço ocupa, nunca o matiz. Cor nova entra no `MARCA` e
   chega em todas de uma vez; cor fora dele só existe se alguém digitar no painel,
   e aí já é peça, não marca. A tinta da marca segue a mesma regra: os chips de
   *Marca · Tinta* são as quatro, e mais nada.
-- **O campo é uma rampa vertical: funda em cima, clara embaixo.** As cinco
+- **O campo é uma rampa vertical: clara em cima, funda embaixo.** As cinco
   âncoras não são cinco manchas espalhadas — são cinco faixas empilhadas, na
   ordem em que o painel as mostra (topo, alta, meio, baixa, base). As alturas são
-  as paradas da folha de marca — 10%, 27%, 52%, 75% e 100% a contar do topo —, e
-  não cinco passos iguais: é isso que faz o escuro segurar o terço de cima e o
-  claro só encostar na borda de baixo. Para sair
+  as paradas da folha de marca — 0%, 25%, 48%, 73% e 90% a contar do topo —, e
+  não cinco passos iguais: o escuro segura o terço de baixo.
+- **O claro é orla, não faixa.** A âncora do papel fica acima da borda de cima e
+  tem o menor raio de todas: na tela entra só a beirada dela, e o resto é azul.
+  Uma faixa clara de verdade lavava o terço de cima e levava o cabeçalho junto. Para sair
   faixa e não bolha, o peso da âncora conta a distância horizontal por uma
   fração: cada uma se espalha de lado e fica curta na vertical. O desencontro
   pequeno no eixo x é o que impede a rampa de virar listra de régua.
@@ -144,11 +148,11 @@ onde está).
   quase-preto, que tem croma mas é escuro demais, quanto do papel, que é claro e
   quase sem croma. O efeito continua ligado e na mesma dose; o que mudou é que
   ele acende em vez de desbotar.
-- **O rodapé tem tinta própria.** Ele mora na última faixa, que numa rampa é a
-  ponta oposta do meio: com uma cor de texto só para a página inteira, ele sumiria
-  toda vez que a base clareasse. A cor dele sai da luminância da faixa onde ele
-  está (`--texto-pe`), enquanto o resto da página segue a do meio, que é onde a
-  marca pousa.
+- **Cabeçalho e rodapé têm tinta própria.** Eles moram nas duas pontas da
+  rampa, que são extremas de propósito: com uma cor de texto só para a página
+  inteira, um dos dois sumiria. Cada um tira a sua da luminância da faixa onde
+  está (`--texto-topo`, `--texto-pe`), enquanto o resto da página segue a do
+  meio, que é onde a marca pousa.
 
 - **O movimento do globo é circular por construção.** Com uma amplitude por eixo
   — 45° na rotação e 28° na inclinação, que era o par do gerador — um círculo do
@@ -213,7 +217,7 @@ onde está).
 - **A cor do texto troca de uma vez com a paleta**, sem transição: o fundo muda
   no quadro seguinte, e um texto atravessando meio segundo de cor intermediária
   chegaria atrasado — num quadro só (uma captura, um vídeo), chegaria errado.
-- **A chave do `localStorage` carrega a versão dos padrões** (`everblue-landing-6`).
+- **A chave do `localStorage` carrega a versão dos padrões** (`everblue-landing-10`).
   Mudou o padrão de fábrica, a chave muda junto: senão o valor salvo de ontem
   esconderia o padrão novo e ninguém veria a mudança.
 - **Sem WebGL a página continua de pé**: o `body` já carrega um gradiente CSS com
@@ -234,8 +238,8 @@ webfont. O que a página precisa é da licença de webfont da família.
 
 ## Conteúdo
 
-Os itens do topo são os capítulos do manual da marca — Estratégia, Marca,
-Linguagem e Exemplos. Ainda apontam para `#`: os destinos entram quando as
+Os itens do topo são os capítulos do manual da marca — Marca, Linguagem e
+Exemplos. Ainda apontam para `#`: os destinos entram quando as
 seções existirem.
 #   E v e r b l u e _ O c e a n _ 
  
