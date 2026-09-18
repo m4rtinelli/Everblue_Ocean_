@@ -234,8 +234,9 @@ webfont. O que a página precisa é da licença de webfont da família.
 
 ## Conteúdo
 
-Os links do topo são de rascunho, para o cabeçalho ter o que segurar. Trocar por
-destinos de verdade antes de qualquer coisa pública.
+Os itens do topo são os capítulos do manual da marca — Estratégia, Marca,
+Linguagem e Exemplos. Ainda apontam para `#`: os destinos entram quando as
+seções existirem.
 #   E v e r b l u e _ O c e a n _ 
  
  #   E v e r b l u e _ O c e a n _ 

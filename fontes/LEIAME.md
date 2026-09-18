@@ -27,17 +27,12 @@ A Trust tem nove — de 1A a 3C, do sans ao serifado. Para provar outra, mude a
 linha `--trust` no alto de `landing.css` e o nome dos arquivos nos `@font-face`.
 Nada mais na folha nomeia fonte: tudo pede `var(--sans)`.
 
-## Enquanto os arquivos não chegam
+## O que está aqui hoje
 
-A página funciona. Os `@font-face` não carregam, a pilha de trás assume
-(Poppins → Montserrat → Futura → a do sistema) e o desenho continua de pé. É de
-propósito: assim ninguém precisa da licença para rodar o projeto, e ninguém
-publica sem ela por engano.
+`Trust1ATRIAL-{Regular,Medium,Bold}.otf` — o trial da MCKL, tal como veio, sem
+conversão. Cada `@font-face` tenta o `.woff2` licenciado primeiro e cai no `.otf`
+só se ele faltar; no dia em que o kit entrar, o licenciado vence sozinho.
 
-## A licença
-
-O trial da MCKL **não serve** para isto. O texto dele proíbe, com todas as
-letras, "use the Font Software as a webfonts, convert the Font Software into
-webfont formats". O que a página precisa é da licença de webfont da família, que
-vem no mesmo carrinho da desktop na loja deles — e é ela que gera o `.woff2` que
-entra aqui.
+A página é peça interna, de prova, e não vai ao ar — é isso que faz o trial
+servir. O trial não cobre publicação nem uso como webfont: se um dia for
+publicar, os três `.woff2` licenciados entram aqui e os `.otf` saem.

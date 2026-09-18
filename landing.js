@@ -579,10 +579,22 @@
   const rad = (d) => (d * Math.PI) / 180;
   const fmtAng = (v) =>
     (v < 0 ? "−" : "+") + Math.abs(v).toFixed(1).padStart(4, "0") + "°";
+  /* Cada algarismo vai numa caixa da largura do "0" (1ch). A fonte da marca tem
+     algarismos proporcionais — o "1" é menos da metade do "0" — e não traz
+     tabulares, então um valor que conta a cada quadro dançaria de lado a cada
+     troca de dígito. Com a caixa, o que muda é o desenho e não a largura. Só os
+     dígitos entram na caixa; sinal, grau e por cento seguem no fluxo. */
   function escreve(el, txt) {
-    if (el.__t !== txt) {
-      el.textContent = txt;
-      el.__t = txt;
+    if (el.__t === txt) return;
+    el.__t = txt;
+    el.textContent = "";
+    for (const ch of txt) {
+      if (ch >= "0" && ch <= "9") {
+        const d = document.createElement("span");
+        d.className = "dig";
+        d.textContent = ch;
+        el.appendChild(d);
+      } else el.appendChild(document.createTextNode(ch));
     }
   }
 

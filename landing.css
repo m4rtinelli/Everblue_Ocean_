@@ -202,10 +202,17 @@ body.escuro .rodape {
   gap: clamp(10px, 3vw, 40px);
   /* o rodapé mora na base da rampa e tem tinta própria — ver aplicarTema() */
   color: var(--texto-pe, var(--texto));
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.04em;
+  /* Fonte da marca, como o resto da página — a mono fica só no painel. */
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.03em;
   opacity: 0.62;
+}
+/* caixa por algarismo — ver escreve() no landing.js */
+.leit .dig {
+  display: inline-block;
+  width: 1ch;
+  text-align: center;
 }
 /* cada valor é um botão: clicar acende a guia dele no globo. O aceso ganha uma
    régua de 1px embaixo — a mesma espessura da guia lá em cima, de propósito. */
@@ -801,33 +808,43 @@ input[type="color"]::-moz-color-swatch {
 }
 
 /* ---------- fontes da marca ----------
-   Trust, de Jeremy Mickel (MCKL). Os arquivos são licenciados e não moram no
-   repositório: caem em fontes/ a partir do kit de webfont da compra — ver
-   fontes/LEIAME.md. Enquanto não estiverem lá, estes @font-face simplesmente não
-   carregam e a pilha de --sans assume; a página não quebra nem fica esperando.
+   Trust 1A, de Jeremy Mickel (MCKL). Cada peso tem duas fontes de arquivo, e a
+   ordem é a regra: primeiro o .woff2 do kit licenciado, depois o .otf do trial
+   que está em fontes/. O navegador tenta o primeiro e cai no segundo só se ele
+   faltar — no dia em que o kit entrar, o licenciado vence sozinho, sem mexer
+   aqui.
+
+   Os .otf são o trial da MCKL tal como veio, sem conversão. Esta página não vai
+   ao ar — é peça interna, de prova —, e é isso que faz o trial servir. Se um dia
+   for publicar, os três .woff2 licenciados entram em fontes/ e os .otf saem.
 
    font-display: swap é de propósito. O texto da página é pouco e o desenho é o
    fundo: melhor ler na fonte de trás por um quadro do que ficar com buraco.
 
-   Só três pesos, que são os três que a folha usa (400, 500 e 600 → Bold). Pôr os
-   oito seria mandar o visitante baixar oito arquivos para usar três. */
+   Só três pesos, que são os três que a folha usa (400, 500 e 600 → Bold). */
 @font-face {
   font-family: "Trust 1A";
-  src: url("fontes/Trust1A-Regular.woff2") format("woff2");
+  src:
+    url("fontes/Trust1A-Regular.woff2") format("woff2"),
+    url("fontes/Trust1ATRIAL-Regular.otf") format("opentype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Trust 1A";
-  src: url("fontes/Trust1A-Medium.woff2") format("woff2");
+  src:
+    url("fontes/Trust1A-Medium.woff2") format("woff2"),
+    url("fontes/Trust1ATRIAL-Medium.otf") format("opentype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Trust 1A";
-  src: url("fontes/Trust1A-Bold.woff2") format("woff2");
+  src:
+    url("fontes/Trust1A-Bold.woff2") format("woff2"),
+    url("fontes/Trust1ATRIAL-Bold.otf") format("opentype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;

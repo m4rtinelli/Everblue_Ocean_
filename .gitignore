@@ -8,10 +8,8 @@ ehthumbs.db
 .DS_Store
 ._*
 
-# Fontes licenciadas. Os arquivos da Trust (MCKL) entram em fontes/ vindos do kit
-# de webfont da compra e não sobem para o repositório — a licença é por uso, não
-# por cópia. O LEIAME de lá fica versionado; os binários, não.
+# O kit de webfont licenciado da Trust (MCKL), quando vier, não sobe para o
+# repositório — a licença é por uso, não por cópia. Os .otf do trial ficam
+# versionados: a página é peça interna e o trial é o que ela usa para provar.
 fontes/*.woff2
 fontes/*.woff
-fontes/*.otf
-fontes/*.ttf
