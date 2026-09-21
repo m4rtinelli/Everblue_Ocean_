@@ -217,7 +217,7 @@ onde está).
 - **A cor do texto troca de uma vez com a paleta**, sem transição: o fundo muda
   no quadro seguinte, e um texto atravessando meio segundo de cor intermediária
   chegaria atrasado — num quadro só (uma captura, um vídeo), chegaria errado.
-- **A chave do `localStorage` carrega a versão dos padrões** (`everblue-landing-10`).
+- **A chave do `localStorage` carrega a versão dos padrões** (`everblue-landing-11`).
   Mudou o padrão de fábrica, a chave muda junto: senão o valor salvo de ontem
   esconderia o padrão novo e ninguém veria a mudança.
 - **Sem WebGL a página continua de pé**: o `body` já carrega um gradiente CSS com

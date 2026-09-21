@@ -205,7 +205,11 @@
       tam: 35, // em vmin, limitado pela largura em aplicarTamanho()
       stroke: 40,
       amp: 21, // desvio máximo do cursor, em graus
-      tinta: "auto", // "auto" = a tinta que a paleta pede
+      /* A marca do meio é fixa no abismo, e não "auto": ela pousa na faixa
+         cobalto, onde a tinta deduzida daria creme sobre azul aceso — claro
+         demais para um desenho de linha fina. O "auto" continua na lista, para
+         quem quiser deixar a paleta decidir. */
+      tinta: MARCA.abismo,
     },
     // em tela estreita o painel é gaveta e nasce recolhido: aberto de saída, ele
     // cobriria justamente a marca que veio ver
@@ -225,7 +229,7 @@
   /* A chave carrega a versão dos padrões: mudou o padrão de fábrica, a chave
      muda junto e o que estava salvo é ignorado em vez de esconder o padrão novo
      atrás de um valor antigo. */
-  const CHAVE = "everblue-landing-10";
+  const CHAVE = "everblue-landing-11";
   const clone = (o) => JSON.parse(JSON.stringify(o));
 
   /* Mescla o que estava salvo por cima do padrão, campo a campo: um arquivo
