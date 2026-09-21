@@ -221,7 +221,10 @@
       dur: 8,
       bpp: 0.3, // bits por pixel por quadro: a taxa sai daqui e do tamanho
       container: "mp4",
-      semCursor: true,
+      /* Desligado por padrão: o que se quer gravar é o fundo reagindo ao gesto.
+         Ligado, o vídeo sai só com o movimento próprio do campo — serve para
+         textura de fundo, onde um cursor passeando seria distração. */
+      semCursor: false,
     },
     hud: { aberto: true, min: innerWidth < 780, x: null, y: null },
   };
@@ -229,7 +232,7 @@
   /* A chave carrega a versão dos padrões: mudou o padrão de fábrica, a chave
      muda junto e o que estava salvo é ignorado em vez de esconder o padrão novo
      atrás de um valor antigo. */
-  const CHAVE = "everblue-landing-11";
+  const CHAVE = "everblue-landing-12";
   const clone = (o) => JSON.parse(JSON.stringify(o));
 
   /* Mescla o que estava salvo por cima do padrão, campo a campo: um arquivo
