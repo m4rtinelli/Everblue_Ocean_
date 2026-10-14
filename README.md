@@ -13,7 +13,7 @@ basta abrir `index.html` no navegador, como o gerador de globo.
 | `globe-core.js` | geometria do globo, portada do gerador |
 | `gradient.js` | o fundo em WebGL (shader e uniformes) |
 | `video.js` | gravação do canvas do fundo em vídeo |
-| `landing.js` | estado, ponteiro, laço de quadro e montagem do painel |
+| `landing.js` | estado, ponteiro, laço de quadro e montagem do painel | 
 
 Os scripts são clássicos com `defer`, e não módulos ES: assim a página continua
 funcionando aberta direto do disco (`file://`), onde módulos falhariam por CORS.
