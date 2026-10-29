@@ -166,12 +166,31 @@ onde está).
   com a marca: `vector-effect: non-scaling-stroke` prende o traço no pixel da
   tela. O anel é maior que a espessura do desenho de propósito — menor que isso
   ele fica enterrado sob o próprio traço quando o ponto cai em cima de uma linha.
-- **Com o mouse parado, a marca se acomoda no azimute 245°.** O azimute é a
-  direção em que o cruzamento dos eixos sai do centro (0° ao norte, 90° a leste),
-  e a força da pose é uma fração do desvio máximo em vigor — então ela acompanha
-  o slider de amplitude em vez de brigar com ele. Entra depois de um tempo parado
-  e sai no primeiro movimento do mouse. É também a pose com que a página abre,
-  antes de qualquer gesto.
+- **Com o mouse parado, a marca faz o movimento do logo final.** É o mesmo do
+  vídeo da marca, medido quadro a quadro: ela pousa na pose de repouso (azimute
+  228,85°, na borda do círculo), segura 2,82 s e dá uma volta inteira em sentido
+  horário em 7,85 s, com o cruzamento dos eixos correndo o círculo em velocidade
+  constante — e recomeça. O azimute é a direção em que o cruzamento sai do
+  centro (0° ao norte, 90° a leste) e o raio é o desvio máximo em vigor (22,5°
+  no padrão, o do logo), então o giro acompanha o slider de amplitude. Entra
+  depois de um tempo parado e sai no primeiro movimento do mouse; a página já
+  abre na pose de repouso. O relógio do giro vai adiantado do atraso da inércia
+  (~0,1 s), senão a volta correria uns 4° atrás do logo.
+- **O desenho é o do logo final, recortes incluídos.** O motion da marca foi
+  exportado pelo gerador (Everblue_Globe) com este mesmo desenho e abertura 0,2
+  (28,8°), e no After Effects ganhou dois recortes à mão: a máscara M1, que corta
+  a ponta de baixo em ~32° num corte inclinado, e um recorte animado nas 3h, que
+  esconde a tampa redonda onde o equador encontra a ponta de cima do aro. O
+  `globe-core.js` aplica os dois como máscara do SVG (`recorte()`), com os pontos
+  tirados da comp do AE; o animado vai indexado pelo giro da pose, não pelo
+  tempo.
+- **A ponta das 3h nunca fica arredondada.** As chaves do recorte do AE ficam
+  paradas no começo da volta e saem antes do fim, e ali a tampa redonda
+  aparecia. Fora do miolo da volta (e sempre que o globo segue o cursor) o
+  recorte segue a regra do vetor da marca: a borda de baixo do equador continua
+  reta, com a inclinação com que entra na faixa do aro, até o contorno externo,
+  num canto vivo — o que fica abaixo dela some, e o canto até o contorno é
+  preenchido (`bordaEquador()`/`remate()` em `globe-core.js`).
 - **A pose de repouso é frontal, e isso é o que centra o movimento.** Uma pose de
   partida girada — a marca tem 14° de rotação no preset — faria o desvio pender
   para um lado: o cruzamento dos eixos iria de −12% a +57% do raio em vez de ir
@@ -217,7 +236,7 @@ onde está).
 - **A cor do texto troca de uma vez com a paleta**, sem transição: o fundo muda
   no quadro seguinte, e um texto atravessando meio segundo de cor intermediária
   chegaria atrasado — num quadro só (uma captura, um vídeo), chegaria errado.
-- **A chave do `localStorage` carrega a versão dos padrões** (`everblue-landing-12`).
+- **A chave do `localStorage` carrega a versão dos padrões** (`everblue-landing-13`).
   Mudou o padrão de fábrica, a chave muda junto: senão o valor salvo de ontem
   esconderia o padrão novo e ninguém veria a mudança.
 - **Sem WebGL a página continua de pé**: o `body` já carrega um gradiente CSS com

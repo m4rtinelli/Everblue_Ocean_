@@ -222,6 +222,10 @@
         out.push({ d, papel: "linha" }),
       ),
     );
+    if (p.recorte != null) {
+      const d = remate(bordaEquador(rotY, rotX, p.stroke / 2), p.stroke / 2);
+      if (d) out.push({ d, papel: "remate" });
+    }
     return out;
   }
 
@@ -273,11 +277,181 @@
     rastro: (pts) => (pts.length > 1 ? ptsToD(pts) : ""),
   };
 
+  /* Recorte do logo final. O motion da marca saiu do gerador (Everblue_Globe)
+     com este mesmo desenho, e no After Effects levou dois recortes à mão, que
+     são parte do logo final:
+     · M1, fixo: apara a ponta de baixo da abertura (de 28,8° para ~32°, num
+       corte inclinado);
+     · um recorte animado nas 3h, que esconde a tampa redonda onde o equador
+       encontra a ponta de cima do aro enquanto ele vem por cima.
+     Os pontos são os da comp 958 em unidades do globo (R = 200). O animado está
+     indexado pelo giro — graus de azimute desde a pose de repouso do logo
+     (228,85°) — e não pelo tempo: assim acompanha a pose de verdade, inclusive
+     quando o globo segue o cursor. Entre chaves, interpolação linear, como no AE;
+     nas pontas da volta ele dá lugar à regra geométrica (ver recorte()). */
+  const M1 = [
+    [161.19, 73.98],
+    [151.17, 95.31],
+    [188.59, 120.12],
+    [203.13, 99.71],
+  ];
+  const AZ_REPOUSO = 228.85;
+  const RECORTE = [
+    [30.82, [[227.31, 13.96], [220.28, 28.97], [216.03, 43.52], [226.49, 42.25], [227.43, 17.62]]],
+    [53.47, [[227.31, 13.96], [182.43, 13.94], [177.07, 20.7], [204.78, 33.9], [227.43, 17.62]]],
+    [72.01, [[228.01, 3.86], [179.2, 4.24], [177.07, 20.7], [204.78, 33.9], [227.43, 17.62]]],
+    [122.94, [[225.23, -4.81], [178.6, -2.39], [177.07, 20.7], [204.78, 33.9], [227.43, 17.62]]],
+    [149.05, [[225.23, -4.81], [178.6, -2.39], [177.07, 20.7], [204.78, 33.9], [227.43, 17.62]]],
+    [186.08, [[234.51, 3.68], [179.52, 3.76], [188.41, 37.62], [227.47, 45.86], [237.33, 25.42]]],
+    [205.02, [[239.6, 11.5], [180.14, 11.91], [194.56, 46.78], [239.77, 52.35], [242.7, 29.64]]],
+    [214.84, [[235.37, 14.43], [182.21, 16.52], [194.56, 46.78], [239.77, 52.35], [242.7, 29.64]]],
+    [216.65, [[235.37, 14.43], [187.36, 19.09], [202.07, 45.32], [239.77, 52.35], [242.7, 29.64]]],
+    [218.45, [[235.37, 14.43], [190.2, 19.27], [209.58, 43.86], [239.77, 52.35], [242.7, 29.64]]],
+    [220.86, [[235.37, 14.43], [195.31, 20.37], [217.08, 42.39], [239.77, 52.35], [242.7, 29.64]]],
+  ];
+
+  /* A borda de baixo do equador no logo final. Perto do vértice o equador dobra
+     para encostar tangente na silhueta, e o traço que acompanha a dobra termina
+     arredondado. No vetor da marca a borda de baixo não dobra: segue reta, com a
+     inclinação que tem ao entrar na faixa do aro, até bater no contorno externo,
+     num canto vivo. Chegando por cima, ela segue horizontal — é o corte que o
+     recorte do AE faz. Devolve a reta y = yt + m·(x − xe), em unidades do globo. */
+  function bordaEquador(rotY, rotX, hw) {
+    const xe = R - hw * 0.8;
+    const alt = (x) => {
+      let ant = null;
+      for (let lon = -180; lon <= 180; lon += 1) {
+        const q = project(0, lon, rotY, rotX, R);
+        if (q.z >= 0 && q.x > 0 && ant && (ant.x - x) * (q.x - x) <= 0 && ant.x !== q.x)
+          return ant.y + ((q.y - ant.y) * (x - ant.x)) / (q.x - ant.x);
+        ant = q.z >= 0 ? q : null;
+      }
+      return null;
+    };
+    const y0 = alt(xe),
+      y1 = alt(xe - 8);
+    if (y0 === null || y1 === null) return null;
+    // a borda fica a meio traço na perpendicular: na vertical isso é hw·√(1+s²)
+    const s = (y0 - y1) / 8;
+    return { xe, yt: y0 + hw * Math.sqrt(1 + s * s), m: Math.min(s, 0), yc: y0 };
+  }
+
+  /* O canto vivo: o trecho do aro entre o corte das 3h (y = 0) e a borda reta,
+     até o contorno externo. O que fica abaixo da borda some pelo recorte. */
+  function remate(b, hw) {
+    if (!b) return null;
+    const ro = R + hw,
+      L = (x) => b.yt + b.m * (x - b.xe);
+    if (L(b.xe) <= 0.01) return null;
+    const fora = (x) => x * x + L(x) * L(x) >= ro * ro || L(x) <= 0;
+    let lo = b.xe,
+      hi = ro;
+    for (let k = 0; k < 40; k++) {
+      const mid = (lo + hi) / 2;
+      if (fora(mid)) hi = mid;
+      else lo = mid;
+    }
+    const xf = hi,
+      yf = Math.max(L(xf), 0);
+    const pts = [
+      { x: b.xe, y: 0 },
+      { x: b.xe, y: L(b.xe) },
+      { x: xf, y: yf },
+    ];
+    const af = Math.atan2(yf, xf);
+    for (let i = 1; i <= 8; i++) {
+      const a = af * (1 - i / 8);
+      pts.push({ x: ro * Math.cos(a), y: ro * Math.sin(a) });
+    }
+    return ptsToD(pts) + " Z";
+  }
+
+  /* Giro e raio saem da pose pelo inverso de poseCircular: sen rotY = k·nx e
+     sen rotX·cos rotY = k·ny.
+
+     No miolo da volta (54°–210°) vale o recorte do AE, chave a chave. Nas pontas
+     as chaves do AE ficam paradas (até 54°) ou já saíram (depois de 222°), e a
+     tampa redonda aparecia antes do recorte subir. Ali o recorte segue a regra
+     que as próprias chaves seguem no miolo: corta na altura da borda de baixo do
+     equador, da entrada da faixa para fora. As duas versões se misturam em 6°
+     para a troca não pular. Longe da volta (o globo seguindo o cursor, pouco
+     inclinado) o azimute não quer dizer nada e vale só a regra, que serve para
+     qualquer pose. */
+  function recorte(rotYg, rotXg, amp, hw) {
+    hw = hw || 20;
+    const ry = deg(rotYg),
+      rx = deg(rotXg);
+    const sy = Math.sin(ry),
+      sx = Math.sin(rx) * Math.cos(ry);
+    const r = Math.hypot(sy, sx) / Math.sin(deg(amp));
+    const az = (Math.atan2(sy, -sx) * 180) / Math.PI;
+    const giro = (((az - AZ_REPOUSO) % 360) + 360) % 360;
+
+    const bd = bordaEquador(ry, rx, hw);
+    const xe = R - hw * 0.8;
+    const L = (x) => (bd ? bd.yt + bd.m * (x - bd.xe) : hw);
+    const xr = R + hw + 12;
+    const xl = xe - 10; // um pouco antes da entrada: a dobra deixava um bico ali
+    const geo = [
+      [xr, L(xr)],
+      [xl, L(xl)],
+      [xl, L(xl) + 26],
+      [R + 15, L(R + 15) + 34],
+      [xr, L(xr) + 18],
+    ];
+
+    let i = 0;
+    while (i < RECORTE.length - 1 && RECORTE[i + 1][0] <= giro) i++;
+    const [g0, a] = RECORTE[i],
+      [g1, b] = RECORTE[Math.min(i + 1, RECORTE.length - 1)];
+    const u = g1 > g0 ? clamp((giro - g0) / (g1 - g0), 0, 1) : 0;
+    const ae = a.map((q, j) => [
+      q[0] + (b[j][0] - q[0]) * u,
+      q[1] + (b[j][1] - q[1]) * u,
+    ]);
+    // o recorte do AE só vale perto da volta do logo; fora dela, a regra
+    const w =
+      Math.min(clamp((giro - 54) / 6, 0, 1), clamp((210 - giro) / 6, 0, 1)) *
+      clamp((r - 0.5) / 0.4, 0, 1);
+    return geo.map((q, j) => [
+      q[0] + (ae[j][0] - q[0]) * w,
+      q[1] + (ae[j][1] - q[1]) * w,
+    ]);
+  }
+
   /* Desenho num <svg> por pool de <path>: o número de caminhos muda a cada quadro
      quando o horizonte corta as linhas, então reescrever innerHTML jogaria fora e
      recriaria nós 60× por segundo. O pool só troca o "d" e esconde a sobra. */
   function makePainter(svgEl) {
     const NS = "http://www.w3.org/2000/svg";
+    /* Os recortes entram como máscara do grupo: preto no que some, como o
+       alfa invertido do AE. */
+    const id = "recorte-" + Math.random().toString(36).slice(2, 8);
+    const defs = document.createElementNS(NS, "defs");
+    const mask = document.createElementNS(NS, "mask");
+    mask.setAttribute("id", id);
+    mask.setAttribute("maskUnits", "userSpaceOnUse");
+    mask.setAttribute("x", "-1000");
+    mask.setAttribute("y", "-1000");
+    mask.setAttribute("width", "2000");
+    mask.setAttribute("height", "2000");
+    const fundo = document.createElementNS(NS, "rect");
+    fundo.setAttribute("x", "-1000");
+    fundo.setAttribute("y", "-1000");
+    fundo.setAttribute("width", "2000");
+    fundo.setAttribute("height", "2000");
+    fundo.setAttribute("fill", "#fff");
+    const m1 = document.createElementNS(NS, "polygon");
+    m1.setAttribute("points", M1.map((q) => q.join(",")).join(" "));
+    m1.setAttribute("fill", "#000");
+    const anim = document.createElementNS(NS, "polygon");
+    anim.setAttribute("fill", "#000");
+    mask.append(fundo, m1, anim);
+    defs.appendChild(mask);
+    svgEl.appendChild(defs);
+    let recorteAtual = null,
+      animAtual = "";
+
     const g = document.createElementNS(NS, "g");
     g.setAttribute("fill", "none");
     g.setAttribute("stroke-linejoin", "round");
@@ -289,8 +463,24 @@
 
     return function paint(p) {
       const cs = glyphPaths(p);
+      // p.recorte: amplitude do giro com que o logo final foi feito, ou nada
+      const comRecorte = p.recorte != null;
+      if (comRecorte !== recorteAtual) {
+        if (comRecorte) g.setAttribute("mask", "url(#" + id + ")");
+        else g.removeAttribute("mask");
+        recorteAtual = comRecorte;
+      }
+      if (comRecorte) {
+        const r = recorte(p.rotY, p.rotX, p.recorte, p.stroke / 2);
+        const pts = r ? r.map((q) => q[0].toFixed(2) + "," + q[1].toFixed(2)).join(" ") : "";
+        if (pts !== animAtual) {
+          anim.setAttribute("points", pts);
+          animAtual = pts;
+        }
+      }
       if (p.ink !== inkAtual) {
         g.setAttribute("stroke", p.ink);
+        g.setAttribute("color", p.ink); // o remate pinta com currentColor
         inkAtual = p.ink;
       }
       // uma espessura para o desenho inteiro: aro e linhas com o mesmo peso
@@ -312,6 +502,18 @@
           el.setAttribute("stroke-linecap", cap);
           el.__cap = cap;
         }
+        // o remate é área, não traço: preenche com a tinta do grupo
+        const cheio = cs[i].papel === "remate";
+        if (el.__cheio !== cheio) {
+          if (cheio) {
+            el.setAttribute("fill", "currentColor");
+            el.setAttribute("stroke", "none");
+          } else {
+            el.removeAttribute("fill");
+            el.removeAttribute("stroke");
+          }
+          el.__cheio = cheio;
+        }
         if (el.__off) {
           el.removeAttribute("display");
           el.__off = false;
@@ -330,6 +532,8 @@
     deg,
     clamp,
     glyphPaths,
+    recorte,
+    M1,
     makePainter,
     poseCircular,
     guias,

@@ -204,7 +204,7 @@
       lettering: false,
       tam: 35, // em vmin, limitado pela largura em aplicarTamanho()
       stroke: 40,
-      amp: 21, // desvio máximo do cursor, em graus
+      amp: 22.5, // desvio máximo do cursor, em graus — o raio do giro do logo final
       /* A marca do meio é fixa no abismo, e não "auto": ela pousa na faixa
          cobalto, onde a tinta deduzida daria creme sobre azul aceso — claro
          demais para um desenho de linha fina. O "auto" continua na lista, para
@@ -232,7 +232,7 @@
   /* A chave carrega a versão dos padrões: mudou o padrão de fábrica, a chave
      muda junto e o que estava salvo é ignorado em vez de esconder o padrão novo
      atrás de um valor antigo. */
-  const CHAVE = "everblue-landing-12";
+  const CHAVE = "everblue-landing-13";
   const clone = (o) => JSON.parse(JSON.stringify(o));
 
   /* Mescla o que estava salvo por cima do padrão, campo a campo: um arquivo
@@ -312,14 +312,30 @@
   const grad = window.EBGradient.create(canvas);
   if (!grad) document.body.classList.add("sem-webgl");
 
-  /* Pose de espera: com o ponteiro parado, a marca não fica frontal — ela se
-     acomoda num azimute fixo, que é a inclinação com que o logo repousa. O
-     azimute é a direção em que o cruzamento dos eixos sai do centro (0° ao
-     norte, 90° a leste), e a força é a fração do desvio máximo em vigor, então a
-     pose de espera acompanha o slider de amplitude em vez de brigar com ele.
+  /* Espera: com o ponteiro parado, a marca faz o movimento do logo final — o
+     mesmo do vídeo da marca, medido quadro a quadro. Ela pousa na pose de
+     repouso, segura, e dá uma volta inteira em sentido horário com o cruzamento
+     dos eixos correndo o círculo em velocidade constante, de volta ao mesmo
+     lugar; e recomeça. O azimute é a direção em que o cruzamento sai do centro
+     (0° ao norte, 90° a leste) e a força é a fração do desvio máximo em vigor:
+     em 1 o giro corre a borda do círculo, então ele acompanha o slider de
+     amplitude em vez de brigar com ele.
 
      Entra depois de um tempo parado e sai no primeiro movimento do mouse. */
-  const ESPERA = { az: 245, forca: 0.7, atraso: 1.2, entrada: 1.4 };
+  const ESPERA = {
+    az: 228.85, // pose de repouso do logo final
+    forca: 1,
+    /* Medido quadro a quadro no motion do logo: a volta leva 235,6 quadros a
+       30 fps (1,528°/quadro, constante) e o resto dos 10,667 s é pausa. */
+    pausa: 2.817, // s parado na pose antes de cada volta
+    volta: 7.85, // s de uma volta inteira, em velocidade constante
+    atraso: 1.2,
+    entrada: 1.4,
+  };
+  // a página abre já na pose de repouso, no meio da pausa — como se estivesse
+  // parada desde antes de carregar
+  const inicioPagina =
+    performance.now() - (ESPERA.atraso + ESPERA.entrada) * 1000;
 
   /* Pose de repouso: frontal. O movimento tem de ser simétrico em torno do
      centro do globo, e uma pose de partida girada faria o desvio pender para um
@@ -334,7 +350,10 @@
   const G = {
     meridians: 1,
     parallels: 1,
-    aperture: 0.15,
+    /* 0,2 × 144° = 28,8°: a abertura com que o gerador exportou o logo. O corte
+       final da ponta de baixo (~32°, inclinado) é a máscara M1 do After Effects,
+       que o recorte do globe-core reproduz. */
+    aperture: 0.2,
     rotY: REPOUSO.rotY,
     rotX: REPOUSO.rotX,
     gapCenter: 40,
@@ -346,6 +365,8 @@
     pontaReta: true,
     seeThrough: false,
     ink: MARCA.abismo,
+    // os recortes do logo final (globe-core: recorte); vale a amplitude do giro
+    recorte: null,
   };
 
   // estado efetivo do fundo, reaproveitado quadro a quadro para não gerar lixo
@@ -530,13 +551,17 @@
 
     /* Parado o bastante, a pose de espera assume — misturada, não trocada, para
        a passagem não ter emenda. Mexeu o mouse, ela devolve o comando na hora. */
-    const w = clamp(
-      ((agora - pt.ultimo) / 1000 - ESPERA.atraso) / ESPERA.entrada,
-      0,
-      1,
-    );
+    const parado =
+      (agora - Math.max(pt.ultimo, inicioPagina)) / 1000 - ESPERA.atraso;
+    const w = clamp(parado / ESPERA.entrada, 0, 1);
     if (w > 0) {
-      const a = (ESPERA.az * Math.PI) / 180;
+      /* Relógio da espera: pausa na pose de repouso, depois a volta inteira.
+         Adiantado do atraso da inércia — a perseguição chega ~0,1 s depois do
+         alvo, e sem isso a volta inteira correria uns 4° atrás do logo final. */
+      const ciclo = ESPERA.pausa + ESPERA.volta,
+        f = (parado + (1 / INERCIA - 1) / 60) % ciclo,
+        giro = f < ESPERA.pausa ? 0 : (360 * (f - ESPERA.pausa)) / ESPERA.volta;
+      const a = ((ESPERA.az + giro) * Math.PI) / 180;
       // azimute: 0° ao norte, crescendo para leste; y da tela cresce para baixo
       const [eY, eX] = poseCircular(
         Math.sin(a) * ESPERA.forca,
@@ -555,6 +580,7 @@
 
     G.rotY = REPOUSO.rotY + anim.cY;
     G.rotX = REPOUSO.rotX + anim.cX;
+    G.recorte = gl.amp;
 
     /* Só redesenha quando a pose mudou o bastante para aparecer: a tesselagem é
        a parte cara e, parado, ela sairia igual 60× por segundo. Meio décimo de
@@ -1289,7 +1315,7 @@
       caminho: "globo.amp",
       min: 0,
       max: 70,
-      step: 1,
+      step: 0.5,
       fmt: (v) => v + "°",
       dica: "O quanto o globo vira quando o cursor vai até a borda. Em 0 ele fica parado na pose de repouso.",
     });
