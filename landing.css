@@ -154,13 +154,11 @@ body.escuro .topo nav a,
 body.escuro .rodape {
   filter: drop-shadow(0 1px 10px rgba(0, 0, 0, 0.45));
 }
-/* O selo repete a proporção da marca: a altura do logotipo é 0,64 do diâmetro
-   do símbolo, e o vão entre os dois é 0,22 dele — os mesmos números do lockup
-   grande, para o canto não ler como um segundo desenho. */
+/* O selo é a assinatura final inteira (símbolo + logotipo num vetor só), então
+   proporção, vão e alinhamento já chegam fechados do arquivo da marca. */
 .selo {
   display: flex;
   align-items: center;
-  gap: 6px;
   /* o cabeçalho mora na faixa do topo e tem tinta própria — ver aplicarTema() */
   color: var(--texto-topo, var(--tinta));
   opacity: 0.9;
@@ -173,11 +171,8 @@ body.escuro .rodape {
   display: block;
   width: auto;
 }
-.selo-simbolo {
+.selo-marca {
   height: 28px;
-}
-.selo-letra {
-  height: 18px;
 }
 .topo nav {
   display: flex;
@@ -272,7 +267,10 @@ body.escuro .rodape {
 .lockup {
   display: flex;
   align-items: center;
-  gap: calc(var(--globo) * 0.22);
+  /* números da assinatura final (logo_horizontal_positivo), em diâmetros D do
+     símbolo: vão 0,288 D, logotipo 0,633 D de altura, centro dele 0,078 D acima
+     do centro do círculo. O círculo ocupa 440/460 da caixa do #globo. */
+  gap: calc(var(--globo) * 0.2535);
   color: var(--tinta);
   /* o JS escala o conjunto para caber no espaço que sobra do painel */
   transform-origin: center;
@@ -308,14 +306,15 @@ body.escuro .rodape {
 }
 /* O logotipo é medido pelo globo, não pela tela: na marca a altura dele
    acompanha o diâmetro, e é essa razão que faz o lockup parecer desenhado junto
-   em vez de montado. O empurrão para cima é ótico — a caixa do vetor vai da
-   ascendente à linha de base, e centrá-la pela caixa deixaria a palavra
-   pousada baixa demais em relação ao círculo. */
+   em vez de montado. A caixa do vetor vai da ascendente à linha de base, e na
+   assinatura final ela pousa acima do centro do círculo — o top desloca sem
+   mexer na medida do flex. */
 .logotipo {
-  height: calc(var(--globo) * 0.64);
+  height: calc(var(--globo) * 0.6052);
   width: auto;
   display: block;
-  margin-top: calc(var(--globo) * -0.05);
+  position: relative;
+  top: calc(var(--globo) * -0.0749);
 }
 .lockup.sem-letra .logotipo {
   display: none;
@@ -782,7 +781,7 @@ input[type="color"]::-moz-color-swatch {
   .logotipo {
     height: auto;
     width: min(72vw, 420px);
-    margin-top: 0;
+    top: 0;
   }
   .rodape .leit:nth-child(n + 4) {
     display: none;

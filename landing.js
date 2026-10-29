@@ -10,29 +10,27 @@
   const $ = (id) => document.getElementById(id);
 
   /* ---------- cores da marca ----------
-     Os quatro valores da folha de marca, e nada fora deles. Toda paleta daqui
-     para baixo é uma composição destes quatro: o que muda de uma para outra é
-     onde cada um pousa e quanto espaço ocupa, nunca o matiz. Cor nova só entra
-     aqui, e aí entra em todas as paletas de uma vez. */
+     Os valores da folha final (Figma, Design Assets › Motion (wip), "GRADIENTE
+     - 120º"), e nada fora deles. Toda paleta daqui para baixo é uma composição
+     destes valores: o que muda de uma para outra é onde cada um pousa e quanto
+     espaço ocupa, nunca o matiz. Cor nova só entra aqui, e aí entra em todas as
+     paletas de uma vez. */
   const MARCA = {
-    abismo: "#040B21", // o quase-preto azulado, o teto da rampa
-    marinho: "#0D2457", // o azul profundo
-    cobalto: "#024CCA", // o azul saturado, o meio da rampa e a cor da luz
-    pulso: "#487BE0", // o elétrico
-    papel: "#DCE2FF", // a ponta clara da rampa
-    /* A tinta clara não é o papel: é um branco quente, de fora da rampa, para a
-       marca e o texto não se confundirem com a faixa clara do fundo — sobre azul
-       o papel puxa para o azul e some; o creme se destaca dele. */
+    abismo: "#00002F", // o quase-preto azulado, a ponta funda do gradiente (100%)
+    profundo: "#011053", // a parada de 80%
+    marinho: "#132378", // a parada de 65%, o azul que segura o meio da tela
+    azul: "#2C89FF", // a ponta clara (0%), a luz que entra pelo canto de cima
+    /* Branco névoa: a marca e o texto sobre o gradiente. Fica de fora da rampa,
+       para a marca não se confundir com a faixa clara do fundo. */
     creme: "#FCFAF7",
   };
 
   /* ---------- paletas ----------
-     As cinco cores são uma rampa vertical: a mais clara no topo e a mais funda
-     na base, uma faixa por cor, na ordem em que estão aqui — a ordem da folha de
-     marca, lida de cima para baixo. A faixa do topo é curta de propósito (ver o
-     raio dela): o claro só encosta na borda de cima, e a tela é do azul. "fundo"
-     é a cor funda que faz o piso do campo e a vinheta, e por isso acompanha a
-     base.
+     As cinco cores são uma rampa: a mais clara numa ponta e a mais funda na
+     outra, uma faixa por cor, na ordem em que estão aqui. A rampa nasce vertical
+     e o giro (mov.giro) a deita na diagonal dos 120º da folha — luz no canto de
+     cima à esquerda, fundo escuro embaixo e à direita. "fundo" é a cor funda que
+     faz o piso do campo e a vinheta, e por isso acompanha a base.
 
      Uma paleta é ponto de partida, não estado: escolher uma copia as cores para
      o estado, e dali em diante cada cor é editável no painel. Tinta da marca,
@@ -41,32 +39,35 @@
   const PALETAS = {
     everblue: {
       nome: "Everblue",
-      // a folha de marca tal como está: papel em cima, abismo embaixo. O raio do
-      // papel é o menor de todos — é uma orla, não uma faixa
-      cores: [MARCA.papel, MARCA.pulso, MARCA.cobalto, MARCA.marinho, MARCA.abismo],
-      raios: [0.3, 0.42, 0.42, 0.44, 0.62],
+      /* As paradas da folha: azul 0%, marinho 65%, profundo 80%, abismo 100%.
+         A luz é larga (o raio maior de todos) porque no linear ela ocupa os
+         primeiros 65%; dali para baixo a rampa fecha rápido no escuro, e o
+         abismo vale em dobro — as formas escuras do estático, e o "cliente
+         curte mais escuro mesmo" da folha de motion. */
+      cores: [MARCA.azul, MARCA.marinho, MARCA.profundo, MARCA.abismo, MARCA.abismo],
+      raios: [0.62, 0.44, 0.42, 0.44, 0.62],
       fundo: MARCA.abismo,
     },
     abismo: {
       nome: "Abismo",
-      // a mesma rampa segurada embaixo: o claro não chega a entrar
-      cores: [MARCA.pulso, MARCA.cobalto, MARCA.marinho, MARCA.abismo, MARCA.abismo],
+      // a mesma rampa segurada embaixo: a luz não chega a entrar
+      cores: [MARCA.marinho, MARCA.profundo, MARCA.abismo, MARCA.abismo, MARCA.abismo],
       raios: [0.34, 0.42, 0.42, 0.44, 0.62],
       fundo: MARCA.abismo,
     },
     aurora: {
       nome: "Aurora",
-      // a rampa subida de uma parada: começa no papel e termina no marinho
-      cores: [MARCA.papel, MARCA.papel, MARCA.pulso, MARCA.cobalto, MARCA.marinho],
+      // a rampa subida de uma parada: a luz ocupa a metade de cima
+      cores: [MARCA.azul, MARCA.azul, MARCA.marinho, MARCA.profundo, MARCA.abismo],
       raios: [0.34, 0.42, 0.42, 0.44, 0.62],
-      fundo: MARCA.marinho,
+      fundo: MARCA.abismo,
     },
-    papel: {
-      nome: "Papel",
-      // para peça clara: papel na maior parte e o cobalto no chão
-      cores: [MARCA.papel, MARCA.papel, MARCA.papel, MARCA.pulso, MARCA.cobalto],
+    nevoa: {
+      nome: "Névoa",
+      // para peça clara: o branco névoa na maior parte e o azul no chão
+      cores: [MARCA.creme, MARCA.creme, MARCA.creme, MARCA.azul, MARCA.marinho],
       raios: [0.34, 0.44, 0.42, 0.44, 0.62],
-      fundo: MARCA.cobalto,
+      fundo: MARCA.marinho,
     },
   };
   // rotulos das faixas, de cima para baixo — a mesma ordem das cores
@@ -148,11 +149,10 @@
   // a tinta da marca só pode ser cor da marca — por isso a lista é o MARCA
   const TINTAS = [
     [MARCA.abismo, "Abismo"],
+    [MARCA.profundo, "Profundo"],
     [MARCA.marinho, "Marinho"],
-    [MARCA.cobalto, "Cobalto"],
-    [MARCA.pulso, "Pulso"],
-    [MARCA.papel, "Papel"],
-    [MARCA.creme, "Creme"],
+    [MARCA.azul, "Azul"],
+    [MARCA.creme, "Branco névoa"],
   ];
 
   /* ---------- estado ---------- */
@@ -192,11 +192,11 @@
       padrao: "deriva",
       vel: menosMovimento ? 0.4 : 3,
       amp: 0.21,
-      /* Inclinação fixa da composição, e não rotação: a rampa é vertical de
-         propósito, e um giro que anda levaria o topo escuro para o lado com o
-         tempo. Este valor é o desaprumo que tira a rampa do esquadro — pouco,
-         só o bastante para ela não parecer régua. */
-      giro: -0.03,
+      /* Inclinação fixa da composição, e não rotação: um giro que anda levaria
+         a luz para o lado com o tempo. Este valor deita a rampa na diagonal do
+         gradiente de 120º da folha — luz no canto de cima à esquerda, escuro
+         embaixo e à direita. Em frações de π: −0,2 são 36º. */
+      giro: -0.2,
       respiro: 1,
     },
     globo: {
@@ -205,11 +205,11 @@
       tam: 35, // em vmin, limitado pela largura em aplicarTamanho()
       stroke: 40,
       amp: 22.5, // desvio máximo do cursor, em graus — o raio do giro do logo final
-      /* A marca do meio é fixa no abismo, e não "auto": ela pousa na faixa
-         cobalto, onde a tinta deduzida daria creme sobre azul aceso — claro
-         demais para um desenho de linha fina. O "auto" continua na lista, para
-         quem quiser deixar a paleta decidir. */
-      tinta: MARCA.abismo,
+      /* A marca do meio é a versão negativa da folha: branco névoa sobre o
+         gradiente escuro. Fica fixa, e não "auto", porque a luz do canto pode
+         puxar a média para claro e trocar a tinta de um desenho de linha fina.
+         O "auto" continua na lista, para quem quiser deixar a paleta decidir. */
+      tinta: MARCA.creme,
     },
     // em tela estreita o painel é gaveta e nasce recolhido: aberto de saída, ele
     // cobriria justamente a marca que veio ver
@@ -232,7 +232,7 @@
   /* A chave carrega a versão dos padrões: mudou o padrão de fábrica, a chave
      muda junto e o que estava salvo é ignorado em vez de esconder o padrão novo
      atrás de um valor antigo. */
-  const CHAVE = "everblue-landing-13";
+  const CHAVE = "everblue-landing-14";
   const clone = (o) => JSON.parse(JSON.stringify(o));
 
   /* Mescla o que estava salvo por cima do padrão, campo a campo: um arquivo
@@ -364,7 +364,7 @@
        seriam dois jeitos de desenhar o logo errado. */
     pontaReta: true,
     seeThrough: false,
-    ink: MARCA.abismo,
+    ink: MARCA.creme,
     // os recortes do logo final (globe-core: recorte); vale a amplitude do giro
     recorte: null,
   };
